@@ -1,16 +1,44 @@
 // server.js
 const express = require('express');
 const cors = require('cors');
+const bodyParser = require('body-parser');
 const app = express();
 const port = process.env.PORT || 3001;
+
+// Importa Firebase Admin para acceder a Firestore
+const { db } = require('./firebaseAdmin');
+
+// Importa la integración con WhatsApp
 const { connectToWhatsApp, getLatestQR, getConnectionStatus, getWhatsAppSock } = require('./whatsappService');
 
-app.use(cors());
+// Importa el scheduler (esto iniciará las tareas programadas)
+require('./scheduler');
 
-// Conectar automáticamente al arrancar el servidor
-connectToWhatsApp()
-  .then(() => console.log("Conexión a WhatsApp iniciada automáticamente"))
-  .catch((error) => console.error("Error iniciando conexión a WhatsApp:", error));
+app.use(cors());
+app.use(bodyParser.json());
+
+// Endpoint para recibir leads (datos del formulario)
+app.post('/api/leads', async (req, res) => {
+  try {
+    const { nombre, negocio, telefono } = req.body;
+    if (!nombre || !negocio || !telefono) {
+      return res.status(400).json({ error: 'Faltan datos requeridos.' });
+    }
+    const nuevoLead = {
+      nombre,
+      negocio,
+      telefono,
+      estado: 'nuevo', // Marca el lead como nuevo para que el scheduler lo procese
+      fecha_creacion: new Date()
+    };
+
+    const docRef = await db.collection('leads').add(nuevoLead);
+    res.json({ message: 'Lead guardado correctamente', id: docRef.id });
+  } catch (error) {
+    console.error("Error al guardar el lead:", error);
+    res.status(500).json({ error: 'Error interno al guardar el lead.' });
+  }
+});
 
 // Endpoint para iniciar la conexión manualmente (por si se requiere)
 app.get('/api/whatsapp/connect', async (req, res) => {
@@ -102,7 +130,6 @@ app.get('/api/whatsapp/send/audio', async (req, res) => {
     const jid = `${phone}@s.whatsapp.net`;
     // URL del audio en Firebase
     const audioUrl = 'https://firebasestorage.googleapis.com/v0/b/app-invita.firebasestorage.app/o/pruebas%2Faudio-ejemplo-CL.mp3?alt=media&token=084ce466-35d9-45cb-a59b-844e86087bac';
-    // Agregamos ptt: true para que se muestre como audio de voz (con wave form)
     const message = { 
       audio: { url: audioUrl },
       mimetype: 'audio/mpeg',
