@@ -3,26 +3,29 @@ const admin = require('firebase-admin');
 const fs = require('fs');
 const path = require('path');
 
-// Inicializa Firebase Admin con tu servicio
+// Verifica que la variable de entorno esté definida
+if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
+  throw new Error('La variable de entorno FIREBASE_SERVICE_ACCOUNT no está definida.');
+}
+
+// Inicializa Firebase Admin usando las credenciales de la variable de entorno
 admin.initializeApp({
-  credential: admin.credential.cert(require('./serviceAccountKey.json')), // Ruta a tu clave JSON
-  storageBucket: 'gs://app-invita.firebasestorage.app' // Reemplaza con tu bucket
+  credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)),
+  storageBucket: '<TU_BUCKET_FIREBASE>.appspot.com' // Reemplaza con el nombre de tu bucket
 });
 
 const bucket = admin.storage().bucket();
-const localAuthFolder = path.join(__dirname, 'auth_info');
+const localAuthFolder = '/data'; // Usamos la ruta del volumen persistente
 
 async function downloadAuthState() {
   if (!fs.existsSync(localAuthFolder)) {
-    fs.mkdirSync(localAuthFolder);
+    fs.mkdirSync(localAuthFolder, { recursive: true });
   }
-  // Listar archivos en Firebase Storage dentro de la carpeta "auth_info/"
+  // Listar archivos en Firebase Storage dentro de 'auth_info/'
   const [files] = await bucket.getFiles({ prefix: 'auth_info/' });
   for (const file of files) {
-    // Extraer el nombre del archivo sin la carpeta
     const filename = path.basename(file.name);
     const localPath = path.join(localAuthFolder, filename);
-    // Descargar solo si el archivo existe en Storage
     try {
       await file.download({ destination: localPath });
       console.log(`Descargado ${filename}`);
@@ -38,9 +41,7 @@ async function uploadAuthFile(filename) {
   try {
     await bucket.upload(localPath, {
       destination,
-      metadata: {
-        cacheControl: 'no-cache',
-      },
+      metadata: { cacheControl: 'no-cache' }
     });
     console.log(`Subido ${filename} a Firebase Storage`);
   } catch (err) {
