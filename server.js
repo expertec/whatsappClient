@@ -5,6 +5,13 @@ const bodyParser = require('body-parser');
 const app = express();
 const port = process.env.PORT || 3001;
 
+// Agrega un log para depurar las variables de entorno
+console.log("DEBUG: FIREBASE_SERVICE_ACCOUNT_BASE64:", process.env.FIREBASE_SERVICE_ACCOUNT_BASE64);
+if (!process.env.FIREBASE_SERVICE_ACCOUNT_BASE64) {
+  console.error("La variable de entorno FIREBASE_SERVICE_ACCOUNT_BASE64 no está definida.");
+  process.exit(1); // Sale del proceso para evitar errores posteriores
+}
+
 // Importa Firebase Admin para acceder a Firestore
 const { db } = require('./firebaseAdmin');
 
@@ -17,10 +24,10 @@ require('./scheduler');
 app.use(cors());
 app.use(bodyParser.json());
 
-// Endpoint de depuración para revisar las variables de entorno (solo para pruebas)
+// Endpoint de depuración para revisar las variables de entorno
 app.get('/api/debug-env', (req, res) => {
   res.json({
-    FIREBASE_SERVICE_ACCOUNT_BASE64: process.env.FIREBASE_SERVICE_ACCOUNT_BASE64 || null
+    FIREBASE_SERVICE_ACCOUNT_BASE64: process.env.FIREBASE_SERVICE_ACCOUNT_BASE64 || "NO DEFINIDA"
   });
 });
 
