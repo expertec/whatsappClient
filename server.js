@@ -17,6 +17,13 @@ require('./scheduler');
 app.use(cors());
 app.use(bodyParser.json());
 
+// Endpoint de depuración para revisar las variables de entorno (solo para pruebas)
+app.get('/api/debug-env', (req, res) => {
+  res.json({
+    FIREBASE_SERVICE_ACCOUNT_BASE64: process.env.FIREBASE_SERVICE_ACCOUNT_BASE64 || null
+  });
+});
+
 // Endpoint para recibir leads (datos del formulario)
 app.post('/api/leads', async (req, res) => {
   try {
