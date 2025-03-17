@@ -1,26 +1,31 @@
-// firebaseAdmin.js
 const admin = require('firebase-admin');
+const fs = require('fs');
+const path = require('path');
 
-/**
- * Este módulo exporta una función que recibe un objeto JSON 
- * con las credenciales de Firebase, y luego inicializa Firebase Admin.
- * 
- * @param {Object} firebaseConfig - Objeto JSON con las llaves de servicio.
- * @returns {Object} Retorna un objeto con { admin, db }.
- */
-module.exports = function(firebaseConfig) {
-  if (!firebaseConfig) {
-    throw new Error('No se recibió configuración de Firebase.');
-  }
+// Define la ruta del archivo secreto montado por Render
+const firebaseKeyPath = path.join('/etc/secrets', 'serviceAccountKey.json');
 
-  // Inicializa Firebase Admin con las credenciales y el bucket de Storage
-  admin.initializeApp({
-    credential: admin.credential.cert(firebaseConfig),
-    storageBucket: 'app-invita.firebasestorage.app'
-  });
+// Verifica que el archivo exista
+if (!fs.existsSync(firebaseKeyPath)) {
+  throw new Error(`No se encontró el archivo secreto de Firebase en ${firebaseKeyPath}`);
+}
 
-  // Obtén la instancia de Firestore
-  const db = admin.firestore();
+// Lee y parsea el contenido del archivo secreto
+let serviceAccount;
+try {
+  const fileData = fs.readFileSync(firebaseKeyPath, 'utf8');
+  serviceAccount = JSON.parse(fileData);
+} catch (error) {
+  throw new Error("Error leyendo o parseando el archivo secreto: " + error.message);
+}
 
-  return { admin, db };
-};
+// Inicializa Firebase Admin con las credenciales y el bucket de Storage
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  storageBucket: 'app-invita.firebasestorage.app'
+});
+
+// Obtén la instancia de Firestore
+const db = admin.firestore();
+
+module.exports = { admin, db };
