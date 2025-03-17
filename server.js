@@ -2,18 +2,33 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const fs = require('fs');
+const path = require('path');
+
 const app = express();
 const port = process.env.PORT || 3001;
 
-// Agrega un log para depurar las variables de entorno
-console.log("DEBUG: FIREBASE_SERVICE_ACCOUNT_BASE64:", process.env.FIREBASE_SERVICE_ACCOUNT_BASE64);
-if (!process.env.FIREBASE_SERVICE_ACCOUNT_BASE64) {
-  console.error("La variable de entorno FIREBASE_SERVICE_ACCOUNT_BASE64 no está definida.");
+// 1. Definir la ruta al archivo secreto montado por Render
+const firebaseKeyPath = path.join('/etc/secrets', 'serviceAccountKey.json');
+
+// 2. Verificar que el archivo exista
+if (!fs.existsSync(firebaseKeyPath)) {
+  console.error("No se encontró el archivo de llave de Firebase en /etc/secrets/serviceAccountKey.json");
   process.exit(1); // Sale del proceso para evitar errores posteriores
 }
 
-// Importa Firebase Admin para acceder a Firestore
-const { db } = require('./firebaseAdmin');
+// 3. Leer y parsear el archivo JSON
+let firebaseServiceAccount;
+try {
+  const fileData = fs.readFileSync(firebaseKeyPath, 'utf8');
+  firebaseServiceAccount = JSON.parse(fileData);
+} catch (error) {
+  console.error("Error leyendo o parseando el archivo de llave de Firebase:", error);
+  process.exit(1);
+}
+
+// 4. Inicializar Firebase Admin con la configuración
+const { db } = require('./firebaseAdmin')(firebaseServiceAccount);
 
 // Importa la integración con WhatsApp
 const { connectToWhatsApp, getLatestQR, getConnectionStatus, getWhatsAppSock } = require('./whatsappService');
@@ -24,10 +39,12 @@ require('./scheduler');
 app.use(cors());
 app.use(bodyParser.json());
 
-// Endpoint de depuración para revisar las variables de entorno
+// Endpoint de depuración para revisar si el archivo secreto se leyó correctamente
 app.get('/api/debug-env', (req, res) => {
+  const exists = fs.existsSync(firebaseKeyPath);
   res.json({
-    FIREBASE_SERVICE_ACCOUNT_BASE64: process.env.FIREBASE_SERVICE_ACCOUNT_BASE64 || "NO DEFINIDA"
+    archivoSecreto: exists ? "Archivo de llave de Firebase OK" : "No se encontró el archivo secreto",
+    ruta: firebaseKeyPath
   });
 });
 
