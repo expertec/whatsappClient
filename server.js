@@ -28,7 +28,8 @@ try {
 }
 
 // 4. Inicializar Firebase Admin con la configuración
-const { db } = require('./firebaseAdmin')(firebaseServiceAccount);
+const { db } = require('./firebaseAdmin');
+
 
 // Importa la integración con WhatsApp
 const { connectToWhatsApp, getLatestQR, getConnectionStatus, getWhatsAppSock } = require('./whatsappService');
