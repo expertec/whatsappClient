@@ -3,6 +3,9 @@ const cron = require('node-cron');
 const { db } = require('./firebaseAdmin');
 const { getWhatsAppSock } = require('./whatsappService');
 
+// Log de depuración para confirmar que 'db' está definido
+console.log("DEBUG: db en scheduler:", db);
+
 // Función para enviar mensaje de bienvenida
 async function enviarMensajeBienvenida(lead) {
   try {
@@ -17,7 +20,7 @@ async function enviarMensajeBienvenida(lead) {
       phone = `521${phone}`;
     }
     const jid = `${phone}@s.whatsapp.net`;
-    // Enviar mensaje de bienvenida (ajusta el mensaje según lo que necesites)
+    // Enviar mensaje de bienvenida
     await sock.sendMessage(jid, { text: '¡Hola! Gracias por contactarnos. Aquí tienes la información inicial.' });
     console.log(`Mensaje de bienvenida enviado a ${lead.telefono}`);
     // Actualiza el estado del lead para evitar envíos duplicados
