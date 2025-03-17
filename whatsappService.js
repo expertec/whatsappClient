@@ -9,8 +9,8 @@ let latestQR = null;
 let connectionStatus = "Desconectado";
 let whatsappSock = null;
 
-// Ajusta la ruta al volumen persistente (en Railway o en tu entorno de producción)
-const localAuthFolder = '/data';
+// Ajusta la ruta al disco persistente en Render
+const localAuthFolder = '/var/data';
 
 async function connectToWhatsApp() {
   try {
