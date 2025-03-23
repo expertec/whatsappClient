@@ -1,3 +1,4 @@
+// scheduler.js
 const cron = require('node-cron');
 const { db } = require('./firebaseAdmin');
 const { getWhatsAppSock } = require('./whatsappService');
@@ -23,12 +24,24 @@ async function enviarMensaje(lead, mensaje) {
     }
     const jid = `${phone}@s.whatsapp.net`;
 
+    // Reemplazar placeholders en el contenido
     const contenidoFinal = replacePlaceholders(mensaje.contenido, lead);
 
     if (mensaje.type === "texto") {
+      // Mensaje de texto
       await sock.sendMessage(jid, { text: contenidoFinal });
+    } else if (mensaje.type === "audio") {
+      // Mensaje de audio
+      // contenidoFinal debe ser la URL del audio en Firestore
+      const audioMsg = {
+        audio: { url: contenidoFinal },
+        mimetype: 'audio/mpeg',
+        ptt: false // o true, según lo requieras
+      };
+      await sock.sendMessage(jid, audioMsg);
     }
-    // Aquí puedes agregar más condiciones para imagen, audio, etc.
+    // Si necesitas manejar "imagen", "archivo", etc., puedes añadir más else if
+
     console.log(`Mensaje de tipo "${mensaje.type}" enviado a ${lead.telefono}`);
   } catch (error) {
     console.error("Error al enviar mensaje:", error);
@@ -39,11 +52,13 @@ async function enviarMensaje(lead, mensaje) {
 async function processSequences() {
   console.log("Ejecutando scheduler de secuencias...");
   try {
+    // Obtener leads que tengan "secuenciasActivas"
     const leadsSnapshot = await db.collection('leads')
       .where('secuenciasActivas', '!=', null)
       .get();
-    leadsSnapshot.forEach(async (doc) => {
-      const lead = { id: doc.id, ...doc.data() };
+
+    leadsSnapshot.forEach(async (docSnap) => {
+      const lead = { id: docSnap.id, ...docSnap.data() };
       if (!lead.secuenciasActivas || lead.secuenciasActivas.length === 0) return;
 
       let actualizaciones = false;
@@ -56,6 +71,7 @@ async function processSequences() {
         const secuencia = secSnapshot.docs[0].data();
         const mensajes = secuencia.messages;
 
+        // Si ya se han enviado todos los mensajes
         if (seqActiva.index >= mensajes.length) {
           lead.secuenciasActivas[i] = null;
           actualizaciones = true;
@@ -66,6 +82,7 @@ async function processSequences() {
         const startTime = new Date(seqActiva.startTime);
         const envioProgramado = new Date(startTime.getTime() + mensaje.delay * 60000);
 
+        // Si es hora de enviar
         if (Date.now() >= envioProgramado.getTime()) {
           await enviarMensaje(lead, mensaje);
           seqActiva.index += 1;
@@ -73,6 +90,7 @@ async function processSequences() {
         }
       }
 
+      // Filtrar secuencias completadas
       if (actualizaciones) {
         lead.secuenciasActivas = lead.secuenciasActivas.filter(item => item !== null);
         await db.collection('leads').doc(lead.id).update({

@@ -1,3 +1,4 @@
+// whatsappService.js
 const { default: makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion } = require('@whiskeysockets/baileys');
 const QRCode = require('qrcode-terminal');
 const Pino = require('pino');
@@ -8,6 +9,7 @@ let latestQR = null;
 let connectionStatus = "Desconectado";
 let whatsappSock = null;
 
+// Ajusta la ruta al disco persistente en Render
 const localAuthFolder = '/var/data';
 
 async function connectToWhatsApp() {
