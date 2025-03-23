@@ -30,7 +30,6 @@ try {
 // 4. Inicializar Firebase Admin con la configuración
 const { db } = require('./firebaseAdmin');
 
-
 // Importa la integración con WhatsApp
 const { connectToWhatsApp, getLatestQR, getConnectionStatus, getWhatsAppSock } = require('./whatsappService');
 
@@ -144,7 +143,7 @@ app.get('/api/whatsapp/send/image', async (req, res) => {
   }
 });
 
-// Endpoint para enviar mensaje de audio con URL de Firebase y wave form (ptt)
+// Endpoint para enviar mensaje de audio con URL de Firebase
 app.get('/api/whatsapp/send/audio', async (req, res) => {
   let phone = req.query.phone;
   if (!phone) return res.status(400).json({ status: 'error', message: 'Número de teléfono requerido.' });
@@ -158,20 +157,34 @@ app.get('/api/whatsapp/send/audio', async (req, res) => {
     return res.status(500).json({ status: 'error', message: 'No hay conexión activa con WhatsApp.' });
   }
   
+  const jid = `${phone}@s.whatsapp.net`;
+  // URL del audio en Firebase
+  const audioUrl = 'https://firebasestorage.googleapis.com/v0/b/app-invita.firebasestorage.app/o/pruebas%2Faudio-ejemplo-CL.mp3?alt=media&token=084ce466-35d9-45cb-a59b-844e86087bac';
+  
   try {
-    const jid = `${phone}@s.whatsapp.net`;
-    // URL del audio en Firebase
-    const audioUrl = 'https://firebasestorage.googleapis.com/v0/b/app-invita.firebasestorage.app/o/pruebas%2Faudio-ejemplo-CL.mp3?alt=media&token=084ce466-35d9-45cb-a59b-844e86087bac';
+    // Intentar enviar con ptt: true (nota de voz)
     const message = { 
       audio: { url: audioUrl },
       mimetype: 'audio/mpeg',
       ptt: true
     };
     await sock.sendMessage(jid, message);
-    res.json({ status: 'ok', message: 'Mensaje de audio enviado.' });
+    res.json({ status: 'ok', message: 'Mensaje de audio enviado con ptt: true.' });
   } catch (error) {
-    console.error('Error enviando mensaje de audio:', error);
-    res.status(500).json({ status: 'error', message: 'Error al enviar mensaje de audio.' });
+    console.error('Error enviando mensaje de audio con ptt: true:', error);
+    try {
+      // Si falla, intentar enviar con ptt: false (audio normal)
+      const message = { 
+        audio: { url: audioUrl },
+        mimetype: 'audio/mpeg',
+        ptt: false
+      };
+      await sock.sendMessage(jid, message);
+      res.json({ status: 'ok', message: 'Mensaje de audio enviado con ptt: false.' });
+    } catch (error2) {
+      console.error('Error enviando mensaje de audio con ptt: false:', error2);
+      res.status(500).json({ status: 'error', message: 'Error al enviar mensaje de audio.' });
+    }
   }
 });
 
