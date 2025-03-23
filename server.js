@@ -1,4 +1,3 @@
-// server.js
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -14,7 +13,7 @@ const firebaseKeyPath = path.join('/etc/secrets', 'serviceAccountKey.json');
 // 2. Verificar que el archivo exista
 if (!fs.existsSync(firebaseKeyPath)) {
   console.error("No se encontró el archivo de llave de Firebase en /etc/secrets/serviceAccountKey.json");
-  process.exit(1); // Sale del proceso para evitar errores posteriores
+  process.exit(1);
 }
 
 // 3. Leer y parsear el archivo JSON
@@ -39,7 +38,7 @@ require('./scheduler');
 app.use(cors());
 app.use(bodyParser.json());
 
-// Endpoint de depuración para revisar si el archivo secreto se leyó correctamente
+// Endpoint de depuración
 app.get('/api/debug-env', (req, res) => {
   const exists = fs.existsSync(firebaseKeyPath);
   res.json({
@@ -48,7 +47,7 @@ app.get('/api/debug-env', (req, res) => {
   });
 });
 
-// Endpoint para recibir leads (datos del formulario)
+// Endpoint para recibir leads
 app.post('/api/leads', async (req, res) => {
   try {
     const { nombre, negocio, telefono } = req.body;
@@ -59,10 +58,9 @@ app.post('/api/leads', async (req, res) => {
       nombre,
       negocio,
       telefono,
-      estado: 'nuevo', // Marca el lead como nuevo para que el scheduler lo procese
+      estado: 'nuevo',
       fecha_creacion: new Date()
     };
-
     const docRef = await db.collection('leads').add(nuevoLead);
     res.json({ message: 'Lead guardado correctamente', id: docRef.id });
   } catch (error) {
@@ -71,7 +69,7 @@ app.post('/api/leads', async (req, res) => {
   }
 });
 
-// Endpoint para iniciar la conexión manualmente (por si se requiere)
+// Endpoint para iniciar la conexión manualmente
 app.get('/api/whatsapp/connect', async (req, res) => {
   try {
     await connectToWhatsApp();
@@ -81,7 +79,7 @@ app.get('/api/whatsapp/connect', async (req, res) => {
   }
 });
 
-// Endpoint para consultar el estado actual (QR y conexión)
+// Endpoint para consultar el estado actual
 app.get('/api/whatsapp/status', (req, res) => {
   res.json({
     status: getConnectionStatus(),
@@ -92,20 +90,10 @@ app.get('/api/whatsapp/status', (req, res) => {
 // Endpoint para enviar mensaje de texto
 app.get('/api/whatsapp/send/text', async (req, res) => {
   let phone = req.query.phone;
-  if (!phone) {
-    return res.status(400).json({ status: 'error', message: 'Número de teléfono requerido.' });
-  }
-  
-  // Si el número no comienza con "521", lo concatenamos
-  if (!phone.startsWith('521')) {
-    phone = `521${phone}`;
-  }
-  
+  if (!phone) return res.status(400).json({ status: 'error', message: 'Número de teléfono requerido.' });
+  if (!phone.startsWith('521')) phone = `521${phone}`;
   const sock = getWhatsAppSock();
-  if (!sock) {
-    return res.status(500).json({ status: 'error', message: 'No hay conexión activa con WhatsApp.' });
-  }
-  
+  if (!sock) return res.status(500).json({ status: 'error', message: 'No hay conexión activa con WhatsApp.' });
   try {
     const jid = `${phone}@s.whatsapp.net`;
     await sock.sendMessage(jid, { text: 'Mensaje de prueba desde WhatsApp API' });
@@ -120,19 +108,11 @@ app.get('/api/whatsapp/send/text', async (req, res) => {
 app.get('/api/whatsapp/send/image', async (req, res) => {
   let phone = req.query.phone;
   if (!phone) return res.status(400).json({ status: 'error', message: 'Número de teléfono requerido.' });
-  
-  if (!phone.startsWith('521')) {
-    phone = `521${phone}`;
-  }
-  
+  if (!phone.startsWith('521')) phone = `521${phone}`;
   const sock = getWhatsAppSock();
-  if (!sock) {
-    return res.status(500).json({ status: 'error', message: 'No hay conexión activa con WhatsApp.' });
-  }
-  
+  if (!sock) return res.status(500).json({ status: 'error', message: 'No hay conexión activa con WhatsApp.' });
   try {
     const jid = `${phone}@s.whatsapp.net`;
-    // URL de la imagen en Firebase
     const imageUrl = 'https://firebasestorage.googleapis.com/v0/b/app-invita.firebasestorage.app/o/pruebas%2FAnuncio%20Cantalab%20(1).png?alt=media&token=aca28f7b-edbc-473d-b4d5-29e05c8bc42e';
     const message = { image: { url: imageUrl }, caption: 'Mensaje de imagen de prueba desde Firebase' };
     await sock.sendMessage(jid, message);
@@ -147,22 +127,13 @@ app.get('/api/whatsapp/send/image', async (req, res) => {
 app.get('/api/whatsapp/send/audio', async (req, res) => {
   let phone = req.query.phone;
   if (!phone) return res.status(400).json({ status: 'error', message: 'Número de teléfono requerido.' });
-  
-  if (!phone.startsWith('521')) {
-    phone = `521${phone}`;
-  }
-  
+  if (!phone.startsWith('521')) phone = `521${phone}`;
   const sock = getWhatsAppSock();
-  if (!sock) {
-    return res.status(500).json({ status: 'error', message: 'No hay conexión activa con WhatsApp.' });
-  }
-  
+  if (!sock) return res.status(500).json({ status: 'error', message: 'No hay conexión activa con WhatsApp.' });
   const jid = `${phone}@s.whatsapp.net`;
-  // URL del audio en Firebase
   const audioUrl = 'https://firebasestorage.googleapis.com/v0/b/app-invita.firebasestorage.app/o/pruebas%2Faudio-ejemplo-CL.mp3?alt=media&token=084ce466-35d9-45cb-a59b-844e86087bac';
-  
   try {
-    // Intentar enviar con ptt: true (nota de voz)
+    // Se intenta enviar con ptt: true
     const message = { 
       audio: { url: audioUrl },
       mimetype: 'audio/mpeg',
@@ -173,7 +144,7 @@ app.get('/api/whatsapp/send/audio', async (req, res) => {
   } catch (error) {
     console.error('Error enviando mensaje de audio con ptt: true:', error);
     try {
-      // Si falla, intentar enviar con ptt: false (audio normal)
+      // Se reintenta con ptt: false
       const message = { 
         audio: { url: audioUrl },
         mimetype: 'audio/mpeg',
