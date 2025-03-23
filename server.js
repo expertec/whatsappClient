@@ -141,7 +141,7 @@ app.get('/api/whatsapp/send/image', async (req, res) => {
   }
 });
 
-// Endpoint para enviar mensaje de audio con URL de Firebase
+// Endpoint para enviar mensaje de audio con OGG/Opus para waveform
 app.get('/api/whatsapp/send/audio', async (req, res) => {
   let phone = req.query.phone;
   if (!phone) return res.status(400).json({ status: 'error', message: 'Número de teléfono requerido.' });
@@ -156,33 +156,21 @@ app.get('/api/whatsapp/send/audio', async (req, res) => {
   }
   
   const jid = `${phone}@s.whatsapp.net`;
-  // URL del audio en Firebase
-  const audioUrl = 'https://firebasestorage.googleapis.com/v0/b/app-invita.firebasestorage.app/o/pruebas%2Faudio-ejemplo-CL.mp3?alt=media&token=084ce466-35d9-45cb-a59b-844e86087bac';
+  // URL del audio .ogg con codec opus (para waveform)
+  const audioUrl = 'https://tusubida.firebase.com/archivo.ogg';
   
   try {
-    // Intentar enviar con ptt: true (nota de voz)
+    // Enviar con ptt: true y mimetype audio/ogg; codecs=opus
     const message = { 
       audio: { url: audioUrl },
-      mimetype: 'audio/mpeg',
+      mimetype: 'audio/ogg; codecs=opus',
       ptt: true
     };
     await sock.sendMessage(jid, message);
-    res.json({ status: 'ok', message: 'Mensaje de audio enviado con ptt: true.' });
+    res.json({ status: 'ok', message: 'Mensaje de audio con waveform enviado.' });
   } catch (error) {
-    console.error('Error enviando mensaje de audio con ptt: true:', error);
-    try {
-      // Reintentar con ptt: false (audio normal)
-      const message = { 
-        audio: { url: audioUrl },
-        mimetype: 'audio/mpeg',
-        ptt: false
-      };
-      await sock.sendMessage(jid, message);
-      res.json({ status: 'ok', message: 'Mensaje de audio enviado con ptt: false.' });
-    } catch (error2) {
-      console.error('Error enviando mensaje de audio con ptt: false:', error2);
-      res.status(500).json({ status: 'error', message: 'Error al enviar mensaje de audio.' });
-    }
+    console.error('Error enviando mensaje de audio con waveform:', error);
+    res.status(500).json({ status: 'error', message: 'Error al enviar mensaje de audio.' });
   }
 });
 

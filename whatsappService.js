@@ -9,7 +9,6 @@ let latestQR = null;
 let connectionStatus = "Desconectado";
 let whatsappSock = null;
 
-// Ajusta la ruta al disco persistente en Render
 const localAuthFolder = '/var/data';
 
 async function connectToWhatsApp() {
@@ -34,7 +33,7 @@ async function connectToWhatsApp() {
       auth: state,
       logger: Pino({ level: 'info' }),
       printQRInTerminal: true,
-      version,
+      version
     });
 
     whatsappSock = sock;
@@ -89,4 +88,9 @@ function getWhatsAppSock() {
   return whatsappSock;
 }
 
-module.exports = { connectToWhatsApp, getLatestQR, getConnectionStatus, getWhatsAppSock };
+module.exports = {
+  connectToWhatsApp,
+  getLatestQR,
+  getConnectionStatus,
+  getWhatsAppSock
+};
