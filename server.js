@@ -95,16 +95,13 @@ app.get('/api/whatsapp/send/text', async (req, res) => {
   if (!phone) {
     return res.status(400).json({ status: 'error', message: 'Número de teléfono requerido.' });
   }
-  
   if (!phone.startsWith('521')) {
     phone = `521${phone}`;
   }
-  
   const sock = getWhatsAppSock();
   if (!sock) {
     return res.status(500).json({ status: 'error', message: 'No hay conexión activa con WhatsApp.' });
   }
-  
   try {
     const jid = `${phone}@s.whatsapp.net`;
     await sock.sendMessage(jid, { text: 'Mensaje de prueba desde WhatsApp API' });
@@ -119,16 +116,13 @@ app.get('/api/whatsapp/send/text', async (req, res) => {
 app.get('/api/whatsapp/send/image', async (req, res) => {
   let phone = req.query.phone;
   if (!phone) return res.status(400).json({ status: 'error', message: 'Número de teléfono requerido.' });
-  
   if (!phone.startsWith('521')) {
     phone = `521${phone}`;
   }
-  
   const sock = getWhatsAppSock();
   if (!sock) {
     return res.status(500).json({ status: 'error', message: 'No hay conexión activa con WhatsApp.' });
   }
-  
   try {
     const jid = `${phone}@s.whatsapp.net`;
     const imageUrl = 'https://firebasestorage.googleapis.com/v0/b/app-invita.firebasestorage.app/o/pruebas%2FAnuncio%20Cantalab%20(1).png?alt=media&token=aca28f7b-edbc-473d-b4d5-29e05c8bc42e';
@@ -141,26 +135,22 @@ app.get('/api/whatsapp/send/image', async (req, res) => {
   }
 });
 
-// Endpoint para enviar mensaje de audio con OGG/Opus para waveform
+// Endpoint para enviar mensaje de audio con waveform (archivo OGG/Opus)
 app.get('/api/whatsapp/send/audio', async (req, res) => {
   let phone = req.query.phone;
   if (!phone) return res.status(400).json({ status: 'error', message: 'Número de teléfono requerido.' });
-  
   if (!phone.startsWith('521')) {
     phone = `521${phone}`;
   }
-  
   const sock = getWhatsAppSock();
   if (!sock) {
     return res.status(500).json({ status: 'error', message: 'No hay conexión activa con WhatsApp.' });
   }
-  
   const jid = `${phone}@s.whatsapp.net`;
-  // URL del audio .ogg con codec opus (para waveform)
+  // Asegúrate de que la URL corresponda a un archivo OGG/Opus válido y público
   const audioUrl = 'https://tusubida.firebase.com/archivo.ogg';
   
   try {
-    // Enviar con ptt: true y mimetype audio/ogg; codecs=opus
     const message = { 
       audio: { url: audioUrl },
       mimetype: 'audio/ogg; codecs=opus',

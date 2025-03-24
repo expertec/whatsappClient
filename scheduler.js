@@ -3,14 +3,14 @@ const cron = require('node-cron');
 const { db } = require('./firebaseAdmin');
 const { getWhatsAppSock } = require('./whatsappService');
 
-// Reemplaza placeholders tipo {{campo}} con datos del lead
+// Función para reemplazar placeholders en el mensaje
 function replacePlaceholders(template, leadData) {
   return template.replace(/\{\{(\w+)\}\}/g, (match, fieldName) => {
     return leadData[fieldName] || match;
   });
 }
 
-// Enviar mensaje según el tipo
+// Función para enviar mensaje según el tipo
 async function enviarMensaje(lead, mensaje) {
   try {
     const sock = getWhatsAppSock();
@@ -24,22 +24,30 @@ async function enviarMensaje(lead, mensaje) {
     }
     const jid = `${phone}@s.whatsapp.net`;
 
-    // Reemplazar placeholders
+    // Reemplazar placeholders en el contenido
     const contenidoFinal = replacePlaceholders(mensaje.contenido, lead);
+    
+    // Validar que el URL no esté vacío para audio e imagen
+    if ((mensaje.type === "audio" || mensaje.type === "imagen") && (!contenidoFinal || contenidoFinal.trim() === "")) {
+      console.error(`Error: El contenido para ${mensaje.type} está vacío para lead ${lead.id}`);
+      return;
+    }
 
     if (mensaje.type === "texto") {
-      // Texto
       await sock.sendMessage(jid, { text: contenidoFinal });
     } else if (mensaje.type === "audio") {
-      // Audio con waveform => OGG/Opus + ptt: true
-      const audioMessage = {
+      // Enviar audio en formato OGG/Opus para mostrar waveform
+      const audioMsg = {
         audio: { url: contenidoFinal },
         mimetype: 'audio/ogg; codecs=opus',
         ptt: true
       };
-      await sock.sendMessage(jid, audioMessage);
+      await sock.sendMessage(jid, audioMsg);
+    } else if (mensaje.type === "imagen") {
+      // Enviar imagen
+      await sock.sendMessage(jid, { image: { url: contenidoFinal } });
     }
-    // Agregar más tipos: imagen, archivo, etc.
+    // Agregar más tipos si se requiere
 
     console.log(`Mensaje de tipo "${mensaje.type}" enviado a ${lead.telefono}`);
   } catch (error) {
@@ -47,7 +55,7 @@ async function enviarMensaje(lead, mensaje) {
   }
 }
 
-// Procesar las secuencias activas
+// Función principal que procesa las secuencias activas para cada lead
 async function processSequences() {
   console.log("Ejecutando scheduler de secuencias...");
   try {
@@ -69,7 +77,6 @@ async function processSequences() {
         const secuencia = secSnapshot.docs[0].data();
         const mensajes = secuencia.messages;
 
-        // Si ya no hay mensajes pendientes
         if (seqActiva.index >= mensajes.length) {
           lead.secuenciasActivas[i] = null;
           actualizaciones = true;
@@ -87,7 +94,6 @@ async function processSequences() {
         }
       }
 
-      // Quitar secuencias finalizadas
       if (actualizaciones) {
         lead.secuenciasActivas = lead.secuenciasActivas.filter(item => item !== null);
         await db.collection('leads').doc(lead.id).update({

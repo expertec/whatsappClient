@@ -88,9 +88,4 @@ function getWhatsAppSock() {
   return whatsappSock;
 }
 
-module.exports = {
-  connectToWhatsApp,
-  getLatestQR,
-  getConnectionStatus,
-  getWhatsAppSock
-};
+module.exports = { connectToWhatsApp, getLatestQR, getConnectionStatus, getWhatsAppSock };
