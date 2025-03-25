@@ -4,7 +4,6 @@ const QRCode = require('qrcode-terminal');
 const Pino = require('pino');
 const path = require('path');
 const fs = require('fs');
-const { db } = require('./firebaseAdmin'); // Aseguramos tener acceso a Firestore
 
 let latestQR = null;
 let connectionStatus = "Desconectado";
@@ -67,44 +66,6 @@ async function connectToWhatsApp() {
     sock.ev.on('creds.update', (creds) => {
       console.log("Credenciales actualizadas:", creds);
       saveCreds();
-    });
-
-    // Nuevo: Manejar mensajes entrantes para registrar leads automáticamente
-    sock.ev.on('messages.upsert', async ({ messages, type }) => {
-      if (type !== 'notify') return;
-      for (const message of messages) {
-        try {
-          // Extraemos el número de teléfono del remitente
-          const senderJid = message.key.remoteJid;
-          const phone = senderJid.split('@')[0];
-          // Utiliza el pushName o, en su defecto, el número como nombre
-          const name = message.pushName || phone;
-          
-          // Verificamos si ya existe un lead con este teléfono
-          const leadsSnapshot = await db.collection('leads').where('telefono', '==', phone).get();
-          if (leadsSnapshot.empty) {
-            // Si no existe, creamos un nuevo lead con la etiqueta y secuencia activa por defecto
-            const newLead = {
-              nombre: name,
-              telefono: phone,
-              estado: 'nuevo',
-              fecha_creacion: new Date(),
-              etiquetas: ['nuevoLead'],
-              secuenciasActivas: [{
-                trigger: 'nuevoLead',
-                startTime: new Date().toISOString(),
-                index: 0
-              }]
-            };
-            await db.collection('leads').add(newLead);
-            console.log(`Nuevo lead creado: ${name} (${phone}) con etiqueta "nuevoLead"`);
-          } else {
-            console.log(`El lead con teléfono ${phone} ya existe.`);
-          }
-        } catch (err) {
-          console.error("Error procesando mensaje entrante:", err);
-        }
-      }
     });
 
     console.log("Conexión de WhatsApp establecida, retornando socket.");
