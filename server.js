@@ -4,6 +4,7 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const fs = require('fs');
 const path = require('path');
+const axios = require('axios'); // Asegúrate de tener axios instalado: npm install axios
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -135,7 +136,7 @@ app.get('/api/whatsapp/send/image', async (req, res) => {
   }
 });
 
-// Endpoint para enviar mensaje de audio con waveform (archivo OGG/Opus)
+// Endpoint para enviar mensaje de audio con waveform (archivo OGG/Opus) usando buffer
 app.get('/api/whatsapp/send/audio', async (req, res) => {
   let phone = req.query.phone;
   if (!phone) return res.status(400).json({ status: 'error', message: 'Número de teléfono requerido.' });
@@ -147,15 +148,21 @@ app.get('/api/whatsapp/send/audio', async (req, res) => {
     return res.status(500).json({ status: 'error', message: 'No hay conexión activa con WhatsApp.' });
   }
   const jid = `${phone}@s.whatsapp.net`;
-  // Asegúrate de que la URL corresponda a un archivo OGG/Opus válido y público
-  const audioUrl = 'https://tusubida.firebase.com/archivo.ogg';
-  
+  // URL del archivo OGG/Opus convertido y subido a Firebase Storage
+  const audioUrl = 'https://firebasestorage.googleapis.com/v0/b/app-invita.firebasestorage.app/o/uploads%2F1742926256585-audio-ejemplo-CL.ogg?alt=media&token=c9aafdf0-d28f-426a-b936-dc3e0474f023';
+
   try {
-    const message = { 
-      audio: { url: audioUrl },
+    // Descargar el archivo como buffer
+    const response = await axios.get(audioUrl, { responseType: 'arraybuffer' });
+    const audioBuffer = Buffer.from(response.data, 'binary');
+
+    // Enviar el mensaje de audio utilizando el buffer
+    const message = {
+      audio: audioBuffer,
       mimetype: 'audio/ogg; codecs=opus',
       ptt: true
     };
+
     await sock.sendMessage(jid, message);
     res.json({ status: 'ok', message: 'Mensaje de audio con waveform enviado.' });
   } catch (error) {
