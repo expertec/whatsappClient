@@ -161,11 +161,11 @@ app.get('/api/whatsapp/send/audio', async (req, res) => {
   try {
     const jid = `${phone}@s.whatsapp.net`;
     // URL del audio en Firebase
-    const audioUrl = 'https://firebasestorage.googleapis.com/v0/b/app-invita.firebasestorage.app/o/pruebas%2Faudio-ejemplo-CL.mp3?alt=media&token=084ce466-35d9-45cb-a59b-844e86087bac';
+    const audioUrl = 'https://firebasestorage.googleapis.com/v0/b/app-invita.firebasestorage.app/o/uploads%2F1742926256585-audio-ejemplo-CL.ogg?alt=media&token=c9aafdf0-d28f-426a-b936-dc3e0474f023';
     const message = { 
       audio: { url: audioUrl },
       mimetype: 'audio/mpeg',
-      ptt: true
+      ptt: false
     };
     await sock.sendMessage(jid, message);
     res.json({ status: 'ok', message: 'Mensaje de audio enviado.' });
