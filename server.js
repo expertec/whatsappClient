@@ -136,6 +136,10 @@ app.get('/api/whatsapp/send/image', async (req, res) => {
   }
 });
 
+// --- Nuevo: Cacheo del buffer de audio ---
+let cachedAudioBuffer = null;
+let cachedAudioUrl = "";
+
 // Endpoint para enviar mensaje de audio con waveform (archivo OGG/Opus) usando buffer
 app.get('/api/whatsapp/send/audio', async (req, res) => {
   let phone = req.query.phone;
@@ -152,11 +156,19 @@ app.get('/api/whatsapp/send/audio', async (req, res) => {
   const audioUrl = 'https://firebasestorage.googleapis.com/v0/b/app-invita.firebasestorage.app/o/uploads%2F1742926256585-audio-ejemplo-CL.ogg?alt=media&token=c9aafdf0-d28f-426a-b936-dc3e0474f023';
 
   try {
-    // Descargar el archivo como buffer
-    const response = await axios.get(audioUrl, { responseType: 'arraybuffer' });
-    const audioBuffer = Buffer.from(response.data, 'binary');
+    let audioBuffer;
+    // Si ya tenemos el buffer cacheado y la URL es la misma, reutilízalo
+    if (cachedAudioUrl === audioUrl && cachedAudioBuffer) {
+      audioBuffer = cachedAudioBuffer;
+      console.log("Usando buffer de audio cacheado.");
+    } else {
+      const response = await axios.get(audioUrl, { responseType: 'arraybuffer' });
+      audioBuffer = Buffer.from(response.data, 'binary');
+      cachedAudioUrl = audioUrl;
+      cachedAudioBuffer = audioBuffer;
+      console.log("Audio descargado y cacheado. Tamaño:", audioBuffer.length);
+    }
 
-    // Enviar el mensaje de audio utilizando el buffer
     const message = {
       audio: audioBuffer,
       mimetype: 'audio/ogg; codecs=opus',
