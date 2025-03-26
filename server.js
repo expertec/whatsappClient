@@ -4,20 +4,25 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const fs = require('fs');
 const path = require('path');
+const axios = require('axios'); // Asegúrate de tener axios instalado: npm install axios
 
 const app = express();
 const port = process.env.PORT || 3001;
 
-// 1. Definir la ruta al archivo secreto montado por Render
-const firebaseKeyPath = path.join('/etc/secrets', 'serviceAccountKey.json');
+/**
+ * Usando Secret Files en Render:
+ * Si has subido "serviceAccountKey.json" como Secret File, Render lo monta en
+ * /etc/secrets/serviceAccountKey.json
+ */
+const firebaseKeyPath = '/etc/secrets/serviceAccountKey.json';
 
-// 2. Verificar que el archivo exista
+// Verificar que el archivo exista
 if (!fs.existsSync(firebaseKeyPath)) {
-  console.error("No se encontró el archivo de llave de Firebase en /etc/secrets/serviceAccountKey.json");
-  process.exit(1); // Sale del proceso para evitar errores posteriores
+  console.error(`No se encontró el archivo de llave de Firebase en ${firebaseKeyPath}`);
+  process.exit(1);
 }
 
-// 3. Leer y parsear el archivo JSON
+// Leer y parsear el archivo JSON
 let firebaseServiceAccount;
 try {
   const fileData = fs.readFileSync(firebaseKeyPath, 'utf8');
@@ -27,9 +32,8 @@ try {
   process.exit(1);
 }
 
-// 4. Inicializar Firebase Admin con la configuración
+// Inicializar Firebase Admin con la configuración (desde firebaseAdmin.js)
 const { db } = require('./firebaseAdmin');
-
 
 // Importa la integración con WhatsApp
 const { connectToWhatsApp, getLatestQR, getConnectionStatus, getWhatsAppSock } = require('./whatsappService');
@@ -49,6 +53,16 @@ app.get('/api/debug-env', (req, res) => {
   });
 });
 
+// (Opcional) Endpoint para listar el contenido de la ruta de montaje
+app.get('/debug-disk', (req, res) => {
+  try {
+    const files = fs.readdirSync('/etc/secrets');
+    res.json({ path: '/etc/secrets', files });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Endpoint para recibir leads (datos del formulario)
 app.post('/api/leads', async (req, res) => {
   try {
@@ -60,7 +74,7 @@ app.post('/api/leads', async (req, res) => {
       nombre,
       negocio,
       telefono,
-      estado: 'nuevo', // Marca el lead como nuevo para que el scheduler lo procese
+      estado: 'nuevo',
       fecha_creacion: new Date()
     };
 
@@ -96,17 +110,13 @@ app.get('/api/whatsapp/send/text', async (req, res) => {
   if (!phone) {
     return res.status(400).json({ status: 'error', message: 'Número de teléfono requerido.' });
   }
-  
-  // Si el número no comienza con "521", lo concatenamos
   if (!phone.startsWith('521')) {
     phone = `521${phone}`;
   }
-  
   const sock = getWhatsAppSock();
   if (!sock) {
     return res.status(500).json({ status: 'error', message: 'No hay conexión activa con WhatsApp.' });
   }
-  
   try {
     const jid = `${phone}@s.whatsapp.net`;
     await sock.sendMessage(jid, { text: 'Mensaje de prueba desde WhatsApp API' });
@@ -121,19 +131,16 @@ app.get('/api/whatsapp/send/text', async (req, res) => {
 app.get('/api/whatsapp/send/image', async (req, res) => {
   let phone = req.query.phone;
   if (!phone) return res.status(400).json({ status: 'error', message: 'Número de teléfono requerido.' });
-  
   if (!phone.startsWith('521')) {
     phone = `521${phone}`;
   }
-  
   const sock = getWhatsAppSock();
   if (!sock) {
     return res.status(500).json({ status: 'error', message: 'No hay conexión activa con WhatsApp.' });
   }
-  
   try {
     const jid = `${phone}@s.whatsapp.net`;
-    // URL de la imagen en Firebase
+    // URL de la imagen en Firebase Storage
     const imageUrl = 'https://firebasestorage.googleapis.com/v0/b/app-invita.firebasestorage.app/o/pruebas%2FAnuncio%20Cantalab%20(1).png?alt=media&token=aca28f7b-edbc-473d-b4d5-29e05c8bc42e';
     const message = { image: { url: imageUrl }, caption: 'Mensaje de imagen de prueba desde Firebase' };
     await sock.sendMessage(jid, message);
@@ -144,31 +151,52 @@ app.get('/api/whatsapp/send/image', async (req, res) => {
   }
 });
 
-// Endpoint para enviar mensaje de audio con URL de Firebase y wave form (ptt)
+// --- Endpoint para enviar mensaje de audio con OGG/Opus (waveform) ---
+/**
+ * Se recomienda enviar el audio como buffer para evitar problemas de concurrencia.
+ * Además, se utiliza la opción uploadWithoutThumbnail: true para evitar que Baileys intente
+ * generar una miniatura (thumbnail) que provoca errores cuando no se tiene una librería de imagen instalada.
+ */
+let cachedAudioBuffer = null;
+let cachedAudioUrl = "";
+
 app.get('/api/whatsapp/send/audio', async (req, res) => {
   let phone = req.query.phone;
   if (!phone) return res.status(400).json({ status: 'error', message: 'Número de teléfono requerido.' });
-  
   if (!phone.startsWith('521')) {
     phone = `521${phone}`;
   }
-  
   const sock = getWhatsAppSock();
   if (!sock) {
     return res.status(500).json({ status: 'error', message: 'No hay conexión activa con WhatsApp.' });
   }
   
+  const jid = `${phone}@s.whatsapp.net`;
+  // URL del archivo OGG/Opus convertido y subido a Firebase Storage.
+  const audioUrl = 'https://firebasestorage.googleapis.com/v0/b/app-invita.firebasestorage.app/o/uploads%2F1742926256585-audio-ejemplo-CL.ogg?alt=media&token=c9aafdf0-d28f-426a-b936-dc3e0474f023';
+
   try {
-    const jid = `${phone}@s.whatsapp.net`;
-    // URL del audio en Firebase
-    const audioUrl = 'https://firebasestorage.googleapis.com/v0/b/app-invita.firebasestorage.app/o/uploads%2F1742926256585-audio-ejemplo-CL.ogg?alt=media&token=c9aafdf0-d28f-426a-b936-dc3e0474f023';
+    let audioBuffer;
+    // Reutiliza el buffer cacheado si el URL es el mismo
+    if (cachedAudioUrl === audioUrl && cachedAudioBuffer) {
+      audioBuffer = cachedAudioBuffer;
+      console.log("Usando buffer de audio cacheado.");
+    } else {
+      console.log("Descargando audio desde:", audioUrl);
+      const response = await axios.get(audioUrl, { responseType: 'arraybuffer' });
+      audioBuffer = Buffer.from(response.data, 'binary');
+      cachedAudioUrl = audioUrl;
+      cachedAudioBuffer = audioBuffer;
+      console.log("Audio descargado y cacheado. Tamaño:", audioBuffer.length);
+    }
+    
     const message = { 
-      audio: { url: audioUrl },
-      mimetype: 'audio/mpeg',
-      ptt: false
+      audio: audioBuffer,
+      mimetype: 'audio/ogg; codecs=opus',
+      ptt: true
     };
-    await sock.sendMessage(jid, message);
-    res.json({ status: 'ok', message: 'Mensaje de audio enviado.' });
+    await sock.sendMessage(jid, message, { uploadWithoutThumbnail: true });
+    res.json({ status: 'ok', message: 'Mensaje de audio con waveform enviado.' });
   } catch (error) {
     console.error('Error enviando mensaje de audio:', error);
     res.status(500).json({ status: 'error', message: 'Error al enviar mensaje de audio.' });
