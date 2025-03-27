@@ -54,7 +54,7 @@ async function enviarMensaje(lead, mensaje) {
           mimetype: 'audio/ogg; codecs=opus',
           ptt: true
         };
-        await sock.sendMessage(jid, audioMsg, { uploadWithoutThumbnail: true });
+        await sock.sendMessage(jid, audioMsg);
       } catch (err) {
         console.error("Error al descargar o enviar audio:", err);
       }
