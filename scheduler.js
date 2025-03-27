@@ -52,7 +52,7 @@ async function enviarMensaje(lead, mensaje) {
         const audioMsg = {
           audio: audioBuffer,
           mimetype: 'audio/ogg; codecs=opus',
-
+          ptt: true
         };
         await sock.sendMessage(jid, audioMsg, { uploadWithoutThumbnail: true });
       } catch (err) {
