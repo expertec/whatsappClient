@@ -42,9 +42,17 @@ async function enviarMensaje(lead, mensaje) {
         const response = await axios.get(contenidoFinal, { responseType: 'arraybuffer' });
         const audioBuffer = Buffer.from(response.data, 'binary');
         console.log(`Audio descargado. Tamaño: ${audioBuffer.length} bytes para el lead ${lead.id}`);
+
+        // Verificar que el buffer no esté vacío
+        if (audioBuffer.length === 0) {
+          console.error(`Error: El archivo descargado está vacío para el lead ${lead.id}`);
+          return;
+        }
+
         const audioMsg = {
           audio: audioBuffer,
-          mimetype: 'audio/mpeg',
+          mimetype: 'audio/ogg; codecs=opus',
+          fileName: 'audio-ejemplo-CL.ogg', // Nombre del archivo para ayudar al proceso de subida
           ptt: true
         };
         await sock.sendMessage(jid, audioMsg, { uploadWithoutThumbnail: true });
