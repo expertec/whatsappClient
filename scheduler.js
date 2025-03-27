@@ -52,8 +52,7 @@ async function enviarMensaje(lead, mensaje) {
         const audioMsg = {
           audio: audioBuffer,
           mimetype: 'audio/ogg; codecs=opus',
-          fileName: 'audio-ejemplo-CL.ogg', // Nombre del archivo para ayudar al proceso de subida
-          ptt: true
+
         };
         await sock.sendMessage(jid, audioMsg, { uploadWithoutThumbnail: true });
       } catch (err) {
