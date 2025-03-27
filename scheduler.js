@@ -49,11 +49,13 @@ async function enviarMensaje(lead, mensaje) {
           return;
         }
 
-        const audioMsg = {
-          audio: audioBuffer,
-          mimetype: 'audio/ogg; codecs=opus',
-          ptt: true
-        };
+       // Cambia a algo similar a:
+const audioMsg = {
+  audio: audioBuffer,
+  mimetype: 'audio/mp4', // o 'audio/m4a'
+  fileName: 'output.m4a'
+  // Se omite ptt para que se trate como audio normal
+};
         await sock.sendMessage(jid, audioMsg);
       } catch (err) {
         console.error("Error al descargar o enviar audio:", err);
