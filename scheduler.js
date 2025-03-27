@@ -44,7 +44,7 @@ async function enviarMensaje(lead, mensaje) {
         console.log(`Audio descargado. Tamaño: ${audioBuffer.length} bytes para el lead ${lead.id}`);
         const audioMsg = {
           audio: audioBuffer,
-          mimetype: 'audio/ogg; codecs=opus',
+          mimetype: 'audio/mpeg',
           ptt: true
         };
         await sock.sendMessage(jid, audioMsg, { uploadWithoutThumbnail: true });
