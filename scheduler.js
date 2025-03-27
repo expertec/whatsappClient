@@ -1,4 +1,4 @@
-// scheduler.js
+const axios = require('axios'); // Asegúrate de tener axios disponible
 const cron = require('node-cron');
 const { db } = require('./firebaseAdmin');
 const { getWhatsAppSock } = require('./whatsappService');
@@ -36,15 +36,22 @@ async function enviarMensaje(lead, mensaje) {
     if (mensaje.type === "texto") {
       await sock.sendMessage(jid, { text: contenidoFinal });
     } else if (mensaje.type === "audio") {
-      // Enviar audio en formato OGG/Opus para mostrar waveform
-      const audioMsg = {
-        audio: { url: contenidoFinal },
-        mimetype: 'audio/ogg; codecs=opus',
-        ptt: true
-      };
-      await sock.sendMessage(jid, audioMsg);
+      // Descargar el archivo de audio y enviarlo como buffer
+      try {
+        console.log(`Descargando audio desde: ${contenidoFinal} para el lead ${lead.id}`);
+        const response = await axios.get(contenidoFinal, { responseType: 'arraybuffer' });
+        const audioBuffer = Buffer.from(response.data, 'binary');
+        console.log(`Audio descargado. Tamaño: ${audioBuffer.length} bytes para el lead ${lead.id}`);
+        const audioMsg = {
+          audio: audioBuffer,
+          mimetype: 'audio/ogg; codecs=opus',
+          ptt: true
+        };
+        await sock.sendMessage(jid, audioMsg, { uploadWithoutThumbnail: true });
+      } catch (err) {
+        console.error("Error al descargar o enviar audio:", err);
+      }
     } else if (mensaje.type === "imagen") {
-      // Enviar imagen
       await sock.sendMessage(jid, { image: { url: contenidoFinal } });
     }
     // Agregar más tipos si se requiere
