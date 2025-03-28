@@ -8,7 +8,7 @@ const path = require('path');
 
 // Importar nuestras funciones
 const { generarEstrategia } = require('./chatGpt');
-const { createStrategyPDF } = require('./utils/pdfKitGenerator');
+const { createStrategyPDF } = require('./utils/generateStrategyPDF');
 
 // Reemplaza placeholders (ej: {{nombre}})
 function replacePlaceholders(template, leadData) {
