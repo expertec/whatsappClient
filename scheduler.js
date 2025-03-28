@@ -1,3 +1,4 @@
+// server/scheduler.js
 const axios = require('axios');
 const cron = require('node-cron');
 const { db } = require('./firebaseAdmin');
@@ -5,18 +6,18 @@ const { getWhatsAppSock } = require('./whatsappService');
 const fs = require('fs');
 const path = require('path');
 
-// Importa funciones para ChatGPT y generación de PDF
+// Importar nuestras funciones
 const { generarEstrategia } = require('./chatGpt');
-const { generateStrategyPDF } = require('./utils/generateStrategyPDF');
+const { createStrategyPDF } = require('./utils/pdfKitGenerator');
 
-// Función para reemplazar placeholders en el mensaje
+// Reemplaza placeholders (ej: {{nombre}})
 function replacePlaceholders(template, leadData) {
   return template.replace(/\{\{(\w+)\}\}/g, (match, fieldName) => {
     return leadData[fieldName] || match;
   });
 }
 
-// Función para enviar mensaje según el tipo
+// Procesa mensajes según el tipo
 async function enviarMensaje(lead, mensaje) {
   try {
     const sock = getWhatsAppSock();
@@ -29,6 +30,7 @@ async function enviarMensaje(lead, mensaje) {
       phone = `521${phone}`;
     }
     const jid = `${phone}@s.whatsapp.net`;
+
     const contenidoFinal = replacePlaceholders(mensaje.contenido, lead);
 
     if (mensaje.type === "texto") {
@@ -56,7 +58,7 @@ async function enviarMensaje(lead, mensaje) {
     } else if (mensaje.type === "imagen") {
       await sock.sendMessage(jid, { image: { url: contenidoFinal } });
     } else if (mensaje.type === "pdfChatGPT") {
-      await procesarMensajePDFChatGPT(lead, mensaje);
+      await procesarMensajePDFChatGPT(lead);
     }
     console.log(`Mensaje de tipo "${mensaje.type}" enviado a ${lead.telefono}`);
   } catch (error) {
@@ -64,20 +66,21 @@ async function enviarMensaje(lead, mensaje) {
   }
 }
 
-// Función para procesar el mensaje de tipo "pdfChatGPT"
-async function procesarMensajePDFChatGPT(lead, mensaje) {
+// Procesa el mensaje "pdfChatGPT": llama a ChatGPT, crea PDF y envía
+async function procesarMensajePDFChatGPT(lead) {
   try {
     console.log(`Procesando PDF ChatGPT para el lead ${lead.id}`);
-    // Llama a ChatGPT para generar el contenido de la estrategia según el giro de negocio
+    // Generar estrategia
     const strategyText = await generarEstrategia(lead.giro);
     if (!strategyText) {
       console.error("No se pudo generar la estrategia");
       return;
     }
-    // Genera el PDF usando el texto generado y los datos del lead
-    const pdfFilePath = await generateStrategyPDF(strategyText, lead);
+    // Crear PDF con pdfkit
+    const pdfFilePath = await createStrategyPDF(strategyText, lead);
     console.log("PDF generado en:", pdfFilePath);
-    const pdfBuffer = fs.readFileSync(pdfFilePath);
+
+    // Enviar PDF por WhatsApp
     const sock = getWhatsAppSock();
     if (!sock) {
       console.error("No hay conexión activa con WhatsApp.");
@@ -88,6 +91,8 @@ async function procesarMensajePDFChatGPT(lead, mensaje) {
       phone = `521${phone}`;
     }
     const jid = `${phone}@s.whatsapp.net`;
+
+    const pdfBuffer = fs.readFileSync(pdfFilePath);
     await sock.sendMessage(jid, {
       document: pdfBuffer,
       fileName: `Estrategia-${lead.nombre}.pdf`,
@@ -99,7 +104,7 @@ async function procesarMensajePDFChatGPT(lead, mensaje) {
   }
 }
 
-// Función principal que procesa las secuencias activas para cada lead
+// Función principal para procesar las secuencias
 async function processSequences() {
   console.log("Ejecutando scheduler de secuencias...");
   try {
@@ -110,28 +115,34 @@ async function processSequences() {
     leadsSnapshot.forEach(async (docSnap) => {
       const lead = { id: docSnap.id, ...docSnap.data() };
       if (!lead.secuenciasActivas || lead.secuenciasActivas.length === 0) return;
+
       let actualizaciones = false;
       for (let i = 0; i < lead.secuenciasActivas.length; i++) {
         const seqActiva = lead.secuenciasActivas[i];
         const secSnapshot = await db.collection('secuencias')
           .where('trigger', '==', seqActiva.trigger).get();
         if (secSnapshot.empty) continue;
+
         const secuencia = secSnapshot.docs[0].data();
         const mensajes = secuencia.messages;
+
         if (seqActiva.index >= mensajes.length) {
           lead.secuenciasActivas[i] = null;
           actualizaciones = true;
           continue;
         }
+
         const mensaje = mensajes[seqActiva.index];
         const startTime = new Date(seqActiva.startTime);
         const envioProgramado = new Date(startTime.getTime() + mensaje.delay * 60000);
+
         if (Date.now() >= envioProgramado.getTime()) {
           await enviarMensaje(lead, mensaje);
           seqActiva.index += 1;
           actualizaciones = true;
         }
       }
+
       if (actualizaciones) {
         lead.secuenciasActivas = lead.secuenciasActivas.filter(item => item !== null);
         await db.collection('leads').doc(lead.id).update({
@@ -144,7 +155,8 @@ async function processSequences() {
   }
 }
 
-// Ejecutar el scheduler cada minuto
+// Corre el scheduler cada minuto
 cron.schedule('* * * * *', () => {
   processSequences();
 });
+
