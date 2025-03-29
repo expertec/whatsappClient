@@ -1,13 +1,12 @@
 // server/chatGpt.js
 import dotenv from 'dotenv';
 dotenv.config();
-import OpenAI from 'openai';
-const { Configuration, OpenAIApi } = OpenAI;
+import * as OpenAI from 'openai';
 
-const configuration = new Configuration({
+const configuration = new OpenAI.Configuration({
   apiKey: process.env.OPENAI_API_KEY,
 });
-const openai = new OpenAIApi(configuration);
+const openai = new OpenAI.OpenAIApi(configuration);
 
 /**
  * Genera una estrategia mensual de marketing en redes sociales usando GPT-4,
