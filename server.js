@@ -8,12 +8,14 @@ import path from "path";
 import { generarEstrategia } from "./chatGpt.js";
 import { createStrategyPDF } from "./utils/pdfKitGenerator.js";
 
+// Función para reemplazar placeholders (por ejemplo, {{nombre}})
 function replacePlaceholders(template, leadData) {
   return template.replace(/\{\{(\w+)\}\}/g, (match, fieldName) => {
     return leadData[fieldName] || match;
   });
 }
 
+// Función para enviar mensaje según el tipo
 async function enviarMensaje(lead, mensaje) {
   try {
     const sock = getWhatsAppSock();
@@ -44,7 +46,7 @@ async function enviarMensaje(lead, mensaje) {
           audio: audioBuffer,
           mimetype: "audio/mp4", // o 'audio/m4a'
           fileName: "output.m4a",
-          ptt: true,
+          ptt: true
         };
         await sock.sendMessage(jid, audioMsg);
       } catch (err) {
@@ -61,6 +63,8 @@ async function enviarMensaje(lead, mensaje) {
   }
 }
 
+// Función para procesar el mensaje de tipo "pdfChatGPT"
+// Llama a ChatGPT, genera un PDF usando pdfkit y lo envía por WhatsApp
 async function procesarMensajePDFChatGPT(lead) {
   try {
     console.log(`Procesando PDF ChatGPT para el lead ${lead.id}`);
@@ -85,7 +89,7 @@ async function procesarMensajePDFChatGPT(lead) {
     await sock.sendMessage(jid, {
       document: pdfBuffer,
       fileName: `Estrategia-${lead.nombre}.pdf`,
-      mimetype: "application/pdf",
+      mimetype: "application/pdf"
     });
     console.log(`PDF de estrategia enviado a ${lead.telefono}`);
   } catch (err) {
@@ -93,6 +97,7 @@ async function procesarMensajePDFChatGPT(lead) {
   }
 }
 
+// Función principal que procesa las secuencias activas para cada lead
 async function processSequences() {
   console.log("Ejecutando scheduler de secuencias...");
   try {
@@ -138,6 +143,7 @@ async function processSequences() {
   }
 }
 
+// Ejecutar el scheduler cada minuto
 cron.schedule("* * * * *", () => {
   processSequences();
 });
