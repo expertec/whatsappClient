@@ -1,8 +1,7 @@
 // server/chatGpt.js
 import dotenv from 'dotenv';
 dotenv.config();
-import pkg from 'openai';
-const { Configuration, OpenAIApi } = pkg;
+import { Configuration, OpenAIApi } from 'openai';
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
