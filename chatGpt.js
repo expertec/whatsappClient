@@ -1,28 +1,27 @@
 // server/chatGpt.js
-require('dotenv').config();
-const { Configuration, OpenAIApi } = require("openai");
+import dotenv from 'dotenv';
+dotenv.config();
+import { Configuration, OpenAIApi } from 'openai';
 
 const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY, // En Render debes configurar esta variable
+  apiKey: process.env.OPENAI_API_KEY,
 });
 const openai = new OpenAIApi(configuration);
 
 /**
- * Genera una estrategia mensual de marketing en redes sociales
- * usando la API de ChatGPT, basada en el giro del negocio.
- *
- * @param {string} giro - El giro del negocio (ej: "Restaurante", "Moda", etc.)
- * @returns {Promise<string|null>} - Retorna el texto de la estrategia o null si falla
+ * Genera una estrategia de marketing basada en el giro del negocio.
+ * Usa GPT-4 para generar el contenido.
+ * @param {string} giro - El giro del negocio (ej: "Restaurante")
+ * @returns {Promise<string|null>}
  */
-async function generarEstrategia(giro) {
+export async function generarEstrategia(giro) {
   const prompt = `Genera una estrategia mensual de marketing en redes sociales para un negocio del giro: ${giro}. 
-Incluye ideas de contenido, frecuencia de publicación, y objetivos.`;
-
+Incluye ideas de contenido, frecuencia de publicación y objetivos.`;
   try {
     const response = await openai.createChatCompletion({
-      model: "gpt-3.5-turbo",
+      model: "gpt-4",
       messages: [{ role: "user", content: prompt }],
-      temperature: 0.7,
+      temperature: 0.7
     });
     return response.data.choices[0].message.content;
   } catch (error) {
@@ -30,5 +29,3 @@ Incluye ideas de contenido, frecuencia de publicación, y objetivos.`;
     return null;
   }
 }
-
-module.exports = { generarEstrategia };
