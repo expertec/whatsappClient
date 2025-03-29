@@ -46,7 +46,7 @@ async function enviarMensaje(lead, mensaje) {
           audio: audioBuffer,
           mimetype: "audio/mp4", // o 'audio/m4a'
           fileName: "output.m4a",
-          ptt: true
+          ptt: true,
         };
         await sock.sendMessage(jid, audioMsg);
       } catch (err) {
@@ -89,7 +89,7 @@ async function procesarMensajePDFChatGPT(lead) {
     await sock.sendMessage(jid, {
       document: pdfBuffer,
       fileName: `Estrategia-${lead.nombre}.pdf`,
-      mimetype: "application/pdf"
+      mimetype: "application/pdf",
     });
     console.log(`PDF de estrategia enviado a ${lead.telefono}`);
   } catch (err) {
@@ -143,7 +143,7 @@ async function processSequences() {
   }
 }
 
-// Ejecutar el scheduler cada minuto
+// Ejecuta el scheduler cada minuto
 cron.schedule("* * * * *", () => {
   processSequences();
 });
