@@ -1,7 +1,8 @@
 // server/chatGpt.js
 import dotenv from 'dotenv';
 dotenv.config();
-import { Configuration, OpenAIApi } from 'openai';
+import OpenAI from 'openai';
+const { Configuration, OpenAIApi } = OpenAI;
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -9,9 +10,9 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration);
 
 /**
- * Genera una estrategia de marketing basada en el giro del negocio.
- * Usa GPT-4 para generar el contenido.
- * @param {string} giro - El giro del negocio (ej: "Restaurante")
+ * Genera una estrategia mensual de marketing en redes sociales usando GPT-4,
+ * basada en el giro del negocio.
+ * @param {string} giro - Giro del negocio (ej. "Restaurante")
  * @returns {Promise<string|null>}
  */
 export async function generarEstrategia(giro) {
