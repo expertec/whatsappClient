@@ -8,12 +8,14 @@ import path from 'path';
 import { generarEstrategia } from './chatGpt.js';
 import { createStrategyPDF } from './utils/pdfKitGenerator.js';
 
+// Función para reemplazar placeholders (por ejemplo, {{nombre}})
 function replacePlaceholders(template, leadData) {
   return template.replace(/\{\{(\w+)\}\}/g, (match, fieldName) => {
     return leadData[fieldName] || match;
   });
 }
 
+// Función para enviar mensajes según su tipo
 async function enviarMensaje(lead, mensaje) {
   try {
     const sock = getWhatsAppSock();
@@ -21,6 +23,7 @@ async function enviarMensaje(lead, mensaje) {
       console.error("No hay conexión activa con WhatsApp.");
       return;
     }
+    // Aseguramos que el número tenga el prefijo "521"
     let phone = lead.telefono;
     if (!phone.startsWith('521')) {
       phone = `521${phone}`;
@@ -42,7 +45,7 @@ async function enviarMensaje(lead, mensaje) {
         }
         const audioMsg = {
           audio: audioBuffer,
-          mimetype: 'audio/mp4', // o 'audio/m4a'
+          mimetype: 'audio/mp4', // o 'audio/m4a' si lo prefieres
           fileName: 'output.m4a',
           ptt: true
         };
@@ -61,6 +64,8 @@ async function enviarMensaje(lead, mensaje) {
   }
 }
 
+// Función para procesar el mensaje de tipo "pdfChatGPT"  
+// Llama a ChatGPT para generar el texto de la estrategia, crea un PDF y lo envía por WhatsApp
 async function procesarMensajePDFChatGPT(lead) {
   try {
     console.log(`Procesando PDF ChatGPT para el lead ${lead.id}`);
@@ -93,6 +98,7 @@ async function procesarMensajePDFChatGPT(lead) {
   }
 }
 
+// Función principal que procesa las secuencias activas para cada lead
 async function processSequences() {
   console.log("Ejecutando scheduler de secuencias...");
   try {
@@ -104,11 +110,15 @@ async function processSequences() {
       const lead = { id: docSnap.id, ...docSnap.data() };
       if (!lead.secuenciasActivas || lead.secuenciasActivas.length === 0) return;
       let actualizaciones = false;
+
+      // Recorrer cada secuencia activa del lead
       for (let i = 0; i < lead.secuenciasActivas.length; i++) {
         const seqActiva = lead.secuenciasActivas[i];
         const secSnapshot = await db.collection('secuencias')
-          .where('trigger', '==', seqActiva.trigger).get();
+          .where('trigger', '==', seqActiva.trigger)
+          .get();
         if (secSnapshot.empty) continue;
+
         const secuencia = secSnapshot.docs[0].data();
         const mensajes = secuencia.messages;
         if (seqActiva.index >= mensajes.length) {
@@ -125,7 +135,9 @@ async function processSequences() {
           actualizaciones = true;
         }
       }
+
       if (actualizaciones) {
+        // Filtrar secuencias que ya finalizaron
         lead.secuenciasActivas = lead.secuenciasActivas.filter(item => item !== null);
         await db.collection('leads').doc(lead.id).update({
           secuenciasActivas: lead.secuenciasActivas
@@ -137,6 +149,7 @@ async function processSequences() {
   }
 }
 
+// Ejecutar el scheduler cada minuto
 cron.schedule('* * * * *', () => {
   processSequences();
 });
