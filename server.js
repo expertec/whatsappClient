@@ -13,10 +13,10 @@ dotenv.config();
 // Importar Firebase Admin (asegúrate de que firebaseAdmin.js use export/import)
 import { db } from './firebaseAdmin.js';
 
-// Importar integración con WhatsApp (asegúrate de que en whatsappService.js se use la importación correcta de Baileys)
+// Importar integración con WhatsApp (ahora en ES Modules)
 import { connectToWhatsApp, getLatestQR, getConnectionStatus, getWhatsAppSock } from './whatsappService.js';
 
-// Inicia el scheduler
+// Inicia el scheduler (este archivo ya está en ES Modules)
 import './scheduler.js';
 
 const app = express();
