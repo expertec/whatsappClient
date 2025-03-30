@@ -13,10 +13,10 @@ dotenv.config();
 // Importar Firebase Admin (asegúrate de que firebaseAdmin.js use export/import)
 import { db } from './firebaseAdmin.js';
 
-// Importar integración con WhatsApp (también usando ES Modules)
+// Importar integración con WhatsApp (asegúrate de que en whatsappService.js se use la importación correcta de Baileys)
 import { connectToWhatsApp, getLatestQR, getConnectionStatus, getWhatsAppSock } from './whatsappService.js';
 
-// Inicia el scheduler (este archivo ya está en ES Modules)
+// Inicia el scheduler
 import './scheduler.js';
 
 const app = express();
@@ -52,6 +52,7 @@ app.get('/api/whatsapp/connect', async (req, res) => {
       message: "Conexión iniciada. Espera el QR si aún no estás conectado."
     });
   } catch (error) {
+    console.error("Error al conectar con WhatsApp:", error);
     res.status(500).json({
       status: "Error",
       message: "Error al conectar con WhatsApp."
