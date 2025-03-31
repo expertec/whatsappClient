@@ -10,13 +10,13 @@ import dotenv from 'dotenv';
 // Cargar variables de entorno
 dotenv.config();
 
-// Importar Firebase Admin (asegúrate de que firebaseAdmin.js use export/import)
+// Importar Firebase Admin
 import { db } from './firebaseAdmin.js';
 
-// Importar integración con WhatsApp (ahora en ES Modules)
+// Importar integración con WhatsApp
 import { connectToWhatsApp, getLatestQR, getConnectionStatus, getWhatsAppSock } from './whatsappService.js';
 
-// Inicia el scheduler (este archivo ya está en ES Modules)
+// Inicia el scheduler
 import './scheduler.js';
 
 const app = express();
