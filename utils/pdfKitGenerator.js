@@ -6,7 +6,7 @@ import path from 'path';
  * Crea un PDF para el plan de ventas en Facebook basado en el JSON generado por ChatGPT.
  * La plantilla se adapta a cada negocio e incluye las siguientes secciones:
  *
- * 1. Título y Datos del Negocio
+ * 1. Portada: Título y Datos del Negocio
  * 2. Objetivos del Plan
  * 3. Público Objetivo
  * 4. Estrategias de Marketing en Facebook
@@ -68,19 +68,22 @@ export async function createStrategyPDF(strategyText, leadData) {
       doc.fontSize(12)
          .text("• Incrementar las Ventas:", { continued: true })
          .font('Helvetica-Bold')
-         .text(` ${obj.incrementarVentas}`, { underline: false });
+         .text(` ${obj.incrementarVentas}`);
       doc.moveDown(0.5);
-
-      doc.fontSize(12).font('Helvetica').text("• Fortalecer la Marca:", { continued: true })
-         .font('Helvetica-Bold').text(` ${obj.fortalecerMarca}`);
+      doc.fontSize(12).font('Helvetica')
+         .text("• Fortalecer la Marca:", { continued: true })
+         .font('Helvetica-Bold')
+         .text(` ${obj.fortalecerMarca}`);
       doc.moveDown(0.5);
-
-      doc.fontSize(12).font('Helvetica').text("• Fidelizar Clientes:", { continued: true })
-         .font('Helvetica-Bold').text(` ${obj.fidelizarClientes}`);
+      doc.fontSize(12).font('Helvetica')
+         .text("• Fidelizar Clientes:", { continued: true })
+         .font('Helvetica-Bold')
+         .text(` ${obj.fidelizarClientes}`);
       doc.moveDown(0.5);
-
-      doc.fontSize(12).font('Helvetica').text("• Generar Leads Calificados:", { continued: true })
-         .font('Helvetica-Bold').text(` ${obj.generarLeads}`);
+      doc.fontSize(12).font('Helvetica')
+         .text("• Generar Leads Calificados:", { continued: true })
+         .font('Helvetica-Bold')
+         .text(` ${obj.generarLeads}`);
     }
     doc.moveDown(1);
 
@@ -101,15 +104,12 @@ export async function createStrategyPDF(strategyText, leadData) {
       doc.fontSize(12).text("a) Contenido Orgánico y Multimedia:", { underline: true });
       doc.fontSize(12).text(plan.estrategiasMarketing.contenidoOrganicoMultimedia);
       doc.moveDown(0.5);
-
       doc.fontSize(12).text("b) Publicidad Pagada y Segmentación Inteligente:", { underline: true });
       doc.fontSize(12).text(plan.estrategiasMarketing.publicidadPagadaSegmentacion);
       doc.moveDown(0.5);
-
       doc.fontSize(12).text("c) Integración de Herramientas y Automatización:", { underline: true });
       doc.fontSize(12).text(plan.estrategiasMarketing.integracionHerramientasAutomatizacion);
       doc.moveDown(0.5);
-
       doc.fontSize(12).text("d) Tendencias Clave para 2025:", { underline: true });
       doc.fontSize(12).text(plan.estrategiasMarketing.tendenciasClave);
     }
@@ -124,13 +124,11 @@ export async function createStrategyPDF(strategyText, leadData) {
         doc.moveDown(0.3);
         doc.fillColor('black').fontSize(12).text("Contenido Orgánico:");
         doc.fontSize(12).text(day.contenidoOrganico || "N/D", { indent: 20 });
-
         if (day.objetivo) {
           doc.moveDown(0.2);
           doc.fontSize(12).text("Objetivo:", { indent: 20 });
           doc.fontSize(12).text(day.objetivo, { indent: 40 });
         }
-
         if (day.anuncio) {
           doc.moveDown(0.2);
           doc.fontSize(12).text("Anuncio:", { indent: 20 });
@@ -148,7 +146,6 @@ export async function createStrategyPDF(strategyText, leadData) {
       doc.fontSize(12).text("Presupuesto Publicitario:");
       doc.fontSize(12).text(plan.presupuestoKPIs.presupuestoPublicitario, { indent: 20 });
       doc.moveDown(0.5);
-
       doc.fontSize(12).text("KPIs Clave a Monitorear:");
       if (plan.presupuestoKPIs.KPIs && Array.isArray(plan.presupuestoKPIs.KPIs)) {
         plan.presupuestoKPIs.KPIs.forEach(kpi => {
@@ -167,7 +164,6 @@ export async function createStrategyPDF(strategyText, leadData) {
                       key === "crmAutomatizacion" ? "CRM y Automatización" :
                       key === "estrategiaOmnicanal" ? "Estrategia Omnicanal" :
                       key === "socialListening" ? "Social Listening" : key;
-
         doc.fontSize(12).text(`${label}:`, { underline: true });
         doc.fontSize(12).text(plan.herramientasIntegracion[key], { indent: 20 });
         doc.moveDown(0.5);
@@ -176,10 +172,7 @@ export async function createStrategyPDF(strategyText, leadData) {
     doc.moveDown(2);
 
     // --- Pie de Página ---
-    doc.fontSize(10)
-       .text("Documento generado automáticamente. Revise y ajuste la estrategia según sea necesario.", {
-         align: "center"
-       });
+    doc.fontSize(10).text("Documento generado automáticamente. Revise y ajuste la estrategia según sea necesario.", { align: "center" });
 
     doc.end();
     stream.on("finish", () => resolve(outputPath));

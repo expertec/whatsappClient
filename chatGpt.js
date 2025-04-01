@@ -23,7 +23,7 @@ const openai = new OpenAIApi(configuration);
  *  - Presupuesto y KPIs
  *  - Herramientas e Integración
  *
- * @param {object} lead - Objeto con datos del lead tal como se guarda en la BD:
+ * @param {object} lead - Objeto con datos del lead:
  *   {
  *     negocio: "SP Playeras",
  *     giro: "Venta de Ropa",
@@ -41,10 +41,10 @@ export async function generarEstrategia(lead) {
     businessType: lead.giro || "General",
     description: lead.descripcion || "Descripción no proporcionada",
     contactName: lead.nombre || "Sin nombre de contacto",
-    phone: lead.telefono || "Sin teléfono",
+    phone: lead.telefono || "Sin teléfono"
   };
 
-  // Estructura JSON esperada para el plan de ventas en Facebook
+  // Definir la estructura JSON esperada para el plan de ventas en Facebook, incluyendo un calendario de 15 días
   const jsonStructure = {
     titulo: `Plan de Ventas para Facebook: Estrategias y Calendario de Contenidos (15 Días) para ${promptData.businessName}`,
     objetivosPlan: {
@@ -65,17 +65,80 @@ export async function generarEstrategia(lead) {
       tendenciasClave: "Personalización y experiencias hiper-relevantes, sostenibilidad y responsabilidad social, interacción omnicanal."
     },
     calendarioContenidos: [
-      // Se deja el calendario de 15 días como ejemplo base
       {
         dia: "Día 1 (Lunes)",
         contenidoOrganico: "Publica una imagen de un producto con fondo inspirador y el texto: '¡Nueva semana, nuevos estilos!'",
-        anuncio: "Inicia una campaña 'Oferta de Bienvenida' con un anuncio gráfico que incluya un cupón de descuento del 10%."
+        anuncio: "Inicia una campaña 'Oferta de Bienvenida' con un cupón de descuento del 10%."
       },
-      // ... Continúa con el resto de días
+      {
+        dia: "Día 2 (Martes)",
+        contenidoOrganico: "Comparte un carrusel de imágenes mostrando diferentes combinaciones del producto.",
+        objetivo: "Inspira a los clientes y genera interacción preguntando: '¿Cuál es tu combinación favorita?'"
+      },
+      {
+        dia: "Día 3 (Miércoles)",
+        contenidoOrganico: "Publica un video corto 'detrás de cámaras' mostrando el proceso de producción.",
+        anuncio: "Lanza una campaña de catálogo digital con un botón 'Solicita tu Catálogo'."
+      },
+      {
+        dia: "Día 4 (Jueves)",
+        contenidoOrganico: "Publica un testimonio en carrusel de un cliente satisfecho.",
+        objetivo: "Reforzar la confianza y credibilidad."
+      },
+      {
+        dia: "Día 5 (Viernes)",
+        contenidoOrganico: "Comparte un reel dinámico mostrando el empaque y la personalización del producto.",
+        anuncio: "Anuncia una 'Promoción de Fin de Semana' con un CTA 'Cotizar Ahora'."
+      },
+      {
+        dia: "Día 6 (Sábado)",
+        contenidoOrganico: "Utiliza historias de Facebook para realizar una encuesta interactiva sobre preferencias de producto.",
+        objetivo: "Fomentar la participación del público."
+      },
+      {
+        dia: "Día 7 (Domingo)",
+        contenidoOrganico: "Publica un resumen semanal en infografía con comentarios destacados.",
+        anuncio: "Lanza un anuncio recordatorio con un CTA 'Solicitar Cotización Hoy'."
+      },
+      {
+        dia: "Día 8 (Lunes)",
+        contenidoOrganico: "Realiza un Facebook Live titulado 'Tour por la Fábrica' para presentar al equipo.",
+        objetivo: "Humanizar la marca y generar conexión."
+      },
+      {
+        dia: "Día 9 (Martes)",
+        contenidoOrganico: "Publica una imagen creativa de los productos en acción en un evento.",
+        objetivo: "Inspirar a visualizar el producto en situaciones reales."
+      },
+      {
+        dia: "Día 10 (Miércoles)",
+        contenidoOrganico: "Comparte una infografía educativa sobre tendencias en el sector.",
+        anuncio: "Dirige una campaña de retargeting con un CTA 'Conocer Más'."
+      },
+      {
+        dia: "Día 11 (Jueves)",
+        contenidoOrganico: "Publica un video testimonial de un cliente mayorista.",
+        objetivo: "Validar socialmente a través de experiencias reales."
+      },
+      {
+        dia: "Día 12 (Viernes)",
+        contenidoOrganico: "Comparte un reel demostrativo sobre la personalización de los productos.",
+        anuncio: "Lanza un anuncio promocional con un descuento especial y CTA 'Aprovecha Ahora'."
+      },
+      {
+        dia: "Día 13 (Sábado)",
+        contenidoOrganico: "Publica una imagen 'antes y después' de la personalización del producto.",
+        objetivo: "Demostrar el valor añadido de la personalización."
+      },
+      {
+        dia: "Día 14 (Domingo)",
+        contenidoOrganico: "Comparte una historia mostrando el día a día en el taller o la oficina.",
+        anuncio: "Publica un anuncio recordatorio con CTA 'Solicitar Cotización o Asesoría'."
+      },
       {
         dia: "Día 15 (Lunes)",
-        contenidoOrganico: "Publica un resumen quincenal en formato infografía o video, con datos de interacción y feedback de clientes.",
-        anuncio: "Invita a suscribirse al boletín para obtener beneficios exclusivos, descuentos y novedades."
+        contenidoOrganico: "Publica un resumen quincenal en formato infografía o video con datos de interacción y feedback de clientes.",
+        anuncio: "Anuncia un CTA final invitando a suscribirse al boletín informativo para beneficios exclusivos."
       }
     ],
     presupuestoKPIs: {
