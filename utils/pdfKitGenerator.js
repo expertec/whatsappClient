@@ -3,157 +3,183 @@ import fs from 'fs';
 import path from 'path';
 
 /**
- * Crea un PDF para el plan de marketing basado en el JSON generado por GPT.
- * La plantilla se inspira en el "Plan de marketing musical" y contiene secciones para:
- * - Portada
- * - Instrucciones
- * - Nombre/Logo del Proyecto
- * - Objetivos Cuantitativos y Cualitativos
- * - Key Marketing Ideas
- * - Audiencia Objetivo
- * - Conceptos Teóricos
- * - Posicionamiento
- * - Plan Estratégico de Marketing (Timeline y Estrategia de Comunicación)
- * - Información Adicional
+ * Crea un PDF para el plan de ventas en Facebook basado en el JSON generado por ChatGPT.
+ * La plantilla se adapta a cada negocio e incluye las siguientes secciones:
  *
- * @param {string|object} strategyText - El plan de marketing generado por ChatGPT (en formato JSON o texto estructurado).
- * @param {object} leadData - Datos del lead (nombre del negocio, giro, descripción, etc.).
+ * 1. Título y Datos del Negocio
+ * 2. Objetivos del Plan
+ * 3. Público Objetivo
+ * 4. Estrategias de Marketing en Facebook
+ * 5. Calendario de Contenidos y Anuncios (15 Días)
+ * 6. Presupuesto y KPIs
+ * 7. Herramientas e Integración
+ *
+ * @param {string|object} strategyText - El plan generado por ChatGPT (en formato JSON o texto estructurado).
+ * @param {object} leadData - Datos del lead:
+ *   {
+ *     negocio: "SP Playeras",
+ *     giro: "Venta de Ropa",
+ *     descripcion: "Venta de ropa al mayoreo",
+ *     nombre: "Michel Perez",
+ *     telefono: "8311760335",
+ *     ...
+ *   }
  * @returns {Promise<string>} - Ruta local del PDF generado.
  */
 export async function createStrategyPDF(strategyText, leadData) {
   return new Promise((resolve, reject) => {
-    const fileName = `plan-marketing-${leadData.id || Date.now()}.pdf`;
+    const fileName = `plan-ventas-${leadData.id || Date.now()}.pdf`;
     const outputPath = path.join('/tmp', fileName);
     const doc = new PDFDocument({ margin: 50, size: 'A4' });
     const stream = fs.createWriteStream(outputPath);
     doc.pipe(stream);
 
-    // Intentar parsear el strategyText como JSON; si falla, se usará como texto plano.
+    // Intentar parsear el strategyText como JSON; si falla, se usa como texto plano.
     let plan;
     try {
       plan = typeof strategyText === 'string' ? JSON.parse(strategyText) : strategyText;
     } catch (error) {
-      plan = { titulo: "Plan de Marketing", instrucciones: strategyText };
+      plan = { titulo: "Plan de Ventas para Facebook", instrucciones: strategyText };
     }
 
-    // --- Portada ---
-    doc.fontSize(24)
-       .text(plan.titulo || "Plan de Marketing", { align: "center", underline: true });
+    // --- 1. Portada: Título y Datos del Negocio ---
+    doc.fontSize(20)
+       .text(plan.titulo || "Plan de Ventas para Facebook", { align: "center", underline: true });
     doc.moveDown();
-    doc.fontSize(16)
-       .text(leadData.negocio || "Nombre del Negocio", { align: "center" });
-    doc.moveDown();
+    doc.fontSize(14)
+       .text(`Negocio: ${leadData.negocio || "N/D"}`, { align: "center" });
     doc.fontSize(12)
-       .text(`Sector: ${leadData.giro || "General"}`, { align: "center" });
-    doc.moveDown();
+       .text(`Sector (Giro): ${leadData.giro || "General"}`, { align: "center" });
+    doc.fontSize(12)
+       .text(`Descripción: ${leadData.descripcion || "Sin descripción"}`, { align: "center" });
+    doc.fontSize(12)
+       .text(`Contacto: ${leadData.nombre || "Sin nombre"}`, { align: "center" });
+    doc.fontSize(12)
+       .text(`Teléfono: ${leadData.telefono || "Sin teléfono"}`, { align: "center" });
     doc.fontSize(12)
        .text(`Fecha: ${new Date().toLocaleDateString()}`, { align: "center" });
-    doc.addPage();
+    doc.moveDown(2);
 
-    // --- Instrucciones ---
-    doc.fontSize(14).text("Instrucciones:", { underline: true });
+    // --- 2. Objetivos del Plan ---
+    doc.fontSize(16).text("1. Objetivos del Plan", { underline: true });
     doc.moveDown(0.5);
-    doc.fontSize(12).text(plan.instrucciones || "Completa el siguiente plan de acuerdo a los objetivos de tu proyecto.", { align: "justify" });
-    doc.moveDown();
+    if (plan.objetivosPlan) {
+      const obj = plan.objetivosPlan;
+      doc.fontSize(12)
+         .text("• Incrementar las Ventas:", { continued: true })
+         .font('Helvetica-Bold')
+         .text(` ${obj.incrementarVentas}`, { underline: false });
+      doc.moveDown(0.5);
 
-    // --- Nombre/Logo del Proyecto ---
-    doc.fontSize(14).text("[NOMBRE/LOGO DEL PROYECTO]", { align: "center" });
+      doc.fontSize(12).font('Helvetica').text("• Fortalecer la Marca:", { continued: true })
+         .font('Helvetica-Bold').text(` ${obj.fortalecerMarca}`);
+      doc.moveDown(0.5);
+
+      doc.fontSize(12).font('Helvetica').text("• Fidelizar Clientes:", { continued: true })
+         .font('Helvetica-Bold').text(` ${obj.fidelizarClientes}`);
+      doc.moveDown(0.5);
+
+      doc.fontSize(12).font('Helvetica').text("• Generar Leads Calificados:", { continued: true })
+         .font('Helvetica-Bold').text(` ${obj.generarLeads}`);
+    }
     doc.moveDown(1);
 
-    // --- Objetivos Cuantitativos ---
-    doc.fontSize(14).text("Objetivos Cuantitativos", { underline: true });
+    // --- 3. Público Objetivo ---
+    doc.fontSize(16).text("2. Público Objetivo", { underline: true });
     doc.moveDown(0.5);
-    if (plan.objetivosCuantitativos && Array.isArray(plan.objetivosCuantitativos)) {
-      plan.objetivosCuantitativos.forEach(obj => {
-        doc.fontSize(12).text(`➔ ${obj}`);
+    if (plan.publicoObjetivo && Array.isArray(plan.publicoObjetivo)) {
+      plan.publicoObjetivo.forEach(item => {
+        doc.fontSize(12).text(`• ${item}`);
       });
-    } else {
-      doc.fontSize(12).text("_____________________________");
-      doc.fontSize(12).text("_____________________________");
-      doc.fontSize(12).text("_____________________________");
     }
-    doc.moveDown();
+    doc.moveDown(1);
 
-    // --- Objetivos Cualitativos ---
-    doc.fontSize(14).text("Objetivos Cualitativos", { underline: true });
+    // --- 4. Estrategias de Marketing en Facebook (2025) ---
+    doc.fontSize(16).text("3. Estrategias de Marketing en Facebook (2025)", { underline: true });
     doc.moveDown(0.5);
-    if (plan.objetivosCualitativos && Array.isArray(plan.objetivosCualitativos)) {
-      plan.objetivosCualitativos.forEach(obj => {
-        doc.fontSize(12).text(`➔ ${obj}`);
-      });
-    } else {
-      doc.fontSize(12).text("_____________________________");
-      doc.fontSize(12).text("_____________________________");
-      doc.fontSize(12).text("_____________________________");
+    if (plan.estrategiasMarketing) {
+      doc.fontSize(12).text("a) Contenido Orgánico y Multimedia:", { underline: true });
+      doc.fontSize(12).text(plan.estrategiasMarketing.contenidoOrganicoMultimedia);
+      doc.moveDown(0.5);
+
+      doc.fontSize(12).text("b) Publicidad Pagada y Segmentación Inteligente:", { underline: true });
+      doc.fontSize(12).text(plan.estrategiasMarketing.publicidadPagadaSegmentacion);
+      doc.moveDown(0.5);
+
+      doc.fontSize(12).text("c) Integración de Herramientas y Automatización:", { underline: true });
+      doc.fontSize(12).text(plan.estrategiasMarketing.integracionHerramientasAutomatizacion);
+      doc.moveDown(0.5);
+
+      doc.fontSize(12).text("d) Tendencias Clave para 2025:", { underline: true });
+      doc.fontSize(12).text(plan.estrategiasMarketing.tendenciasClave);
     }
-    doc.moveDown();
+    doc.moveDown(1);
 
-    // --- Key Marketing Ideas ---
-    doc.fontSize(14).text("Key Marketing Ideas", { underline: true });
+    // --- 5. Calendario de Contenidos y Anuncios (15 Días) ---
+    doc.fontSize(16).text("4. Calendario de Contenidos y Anuncios (15 Días)", { underline: true });
     doc.moveDown(0.5);
-    doc.fontSize(12).text(plan.keyMarketingIdeas || "_____________________________", { align: "justify" });
-    doc.moveDown();
-
-    // --- Audiencia Objetivo ---
-    doc.fontSize(14).text("Audiencia Objetivo", { underline: true });
-    doc.moveDown(0.5);
-    doc.fontSize(12).text(plan.audienciaObjetivo || "_____________________________", { align: "justify" });
-    doc.moveDown();
-
-    // --- Conceptos Teóricos ---
-    doc.fontSize(14).text("Conceptos Teóricos", { underline: true });
-    doc.moveDown(0.5);
-    doc.fontSize(12).text(plan.conceptosTeoricos || "_____________________________", { align: "justify" });
-    doc.moveDown();
-
-    // --- Posicionamiento ---
-    doc.fontSize(14).text("Posicionamiento", { underline: true });
-    doc.moveDown(0.5);
-    doc.fontSize(12).text(plan.posicionamiento || "_____________________________", { align: "justify" });
-    doc.moveDown();
-
-    // --- Plan Estratégico de Marketing ---
-    doc.fontSize(14).text("Plan Estratégico de Marketing", { underline: true });
-    doc.moveDown(0.5);
-    if (plan.planEstrategico && plan.planEstrategico.timeline && Array.isArray(plan.planEstrategico.timeline)) {
-      plan.planEstrategico.timeline.forEach(phase => {
-        doc.fontSize(13).text(`${phase.fase}:`, { underline: true });
+    if (plan.calendarioContenidos && Array.isArray(plan.calendarioContenidos)) {
+      plan.calendarioContenidos.forEach(day => {
+        doc.fontSize(13).fillColor('blue').text(day.dia, { underline: true });
         doc.moveDown(0.3);
-        if (phase.acciones && Array.isArray(phase.acciones)) {
-          phase.acciones.forEach(action => {
-            doc.fontSize(12).list([
-              `Fecha: ${action.fecha || "dd/mm/aa"}`,
-              `Actividad: ${action.actividad || "Detalle de la acción"}`
-            ]);
-            doc.moveDown(0.5);
-          });
+        doc.fillColor('black').fontSize(12).text("Contenido Orgánico:");
+        doc.fontSize(12).text(day.contenidoOrganico || "N/D", { indent: 20 });
+
+        if (day.objetivo) {
+          doc.moveDown(0.2);
+          doc.fontSize(12).text("Objetivo:", { indent: 20 });
+          doc.fontSize(12).text(day.objetivo, { indent: 40 });
         }
-        doc.moveDown();
+
+        if (day.anuncio) {
+          doc.moveDown(0.2);
+          doc.fontSize(12).text("Anuncio:", { indent: 20 });
+          doc.fontSize(12).text(day.anuncio, { indent: 40 });
+        }
+        doc.moveDown(1);
       });
-    } else {
-      doc.fontSize(12).text("No se ha definido un plan estratégico.", { align: "justify" });
     }
-    doc.moveDown();
+    doc.moveDown(1);
 
-    // --- Estrategia de Comunicación ---
-    doc.fontSize(14).text("Estrategia de Comunicación", { underline: true });
+    // --- 6. Presupuesto y KPIs ---
+    doc.fontSize(16).text("5. Presupuesto y KPIs", { underline: true });
     doc.moveDown(0.5);
-    if (plan.planEstrategico && plan.planEstrategico.estrategiaComunicacion) {
-      doc.fontSize(12).text(plan.planEstrategico.estrategiaComunicacion, { align: "justify" });
-    } else {
-      doc.fontSize(12).text("_____________________________", { align: "justify" });
+    if (plan.presupuestoKPIs) {
+      doc.fontSize(12).text("Presupuesto Publicitario:");
+      doc.fontSize(12).text(plan.presupuestoKPIs.presupuestoPublicitario, { indent: 20 });
+      doc.moveDown(0.5);
+
+      doc.fontSize(12).text("KPIs Clave a Monitorear:");
+      if (plan.presupuestoKPIs.KPIs && Array.isArray(plan.presupuestoKPIs.KPIs)) {
+        plan.presupuestoKPIs.KPIs.forEach(kpi => {
+          doc.fontSize(12).text(`• ${kpi}`, { indent: 20 });
+        });
+      }
     }
-    doc.moveDown();
+    doc.moveDown(1);
 
-    // --- Información Adicional ---
-    doc.fontSize(14).text("Información Adicional", { underline: true });
+    // --- 7. Herramientas e Integración ---
+    doc.fontSize(16).text("6. Herramientas e Integración", { underline: true });
     doc.moveDown(0.5);
-    doc.fontSize(12).text(plan.informacionAdicional || "_____________________________", { align: "justify" });
-    doc.moveDown();
+    if (plan.herramientasIntegracion) {
+      Object.keys(plan.herramientasIntegracion).forEach(key => {
+        const label = key === "metaBusinessSuite" ? "Meta Business Suite" :
+                      key === "crmAutomatizacion" ? "CRM y Automatización" :
+                      key === "estrategiaOmnicanal" ? "Estrategia Omnicanal" :
+                      key === "socialListening" ? "Social Listening" : key;
+
+        doc.fontSize(12).text(`${label}:`, { underline: true });
+        doc.fontSize(12).text(plan.herramientasIntegracion[key], { indent: 20 });
+        doc.moveDown(0.5);
+      });
+    }
+    doc.moveDown(2);
 
     // --- Pie de Página ---
-    doc.moveDown(2);
-    doc.fontSize(10).text("Documento generado automáticamente. Revise y ajuste la estrategia según sea necesario.", { align: "center" });
+    doc.fontSize(10)
+       .text("Documento generado automáticamente. Revise y ajuste la estrategia según sea necesario.", {
+         align: "center"
+       });
 
     doc.end();
     stream.on("finish", () => resolve(outputPath));
