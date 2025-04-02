@@ -12,8 +12,9 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration);
 
 /**
- * Genera un plan de ventas para Facebook en formato de texto plano, 
- * personalizado con los datos "giro" y "descripcion" del negocio.
+ * Genera un plan de ventas para Facebook en formato de texto plano,
+ * personalizado según los datos del lead ("giro" y "descripcion") y que
+ * incluya un calendario de contenidos de 15 días con ejemplos.
  *
  * @param {object} lead - Objeto con datos del lead, por ejemplo:
  *   {
@@ -23,7 +24,7 @@ const openai = new OpenAIApi(configuration);
  *     nombre: "Michel Perez",
  *     telefono: "8311760335"
  *   }
- * @returns {Promise<string|null>} - Plan de ventas en texto plano o null en caso de error.
+ * @returns {Promise<string|null>} - El plan generado en texto plano o null en caso de error.
  */
 export async function generarPlanVentas(lead) {
   const promptData = {
@@ -34,23 +35,24 @@ export async function generarPlanVentas(lead) {
     phone: lead.telefono || "Sin teléfono"
   };
 
-  // Construir el prompt para que ChatGPT genere un plan en texto claro, no en formato JSON.
-  const prompt = `Genera un plan de ventas para Facebook, personalizado para el negocio "${promptData.businessName}".
-Usa los siguientes datos:
+  const prompt = `Genera un plan de ventas para Facebook personalizado para el negocio "${promptData.businessName}".
+Usa la siguiente información:
   - Giro: ${promptData.businessType}
   - Descripción: ${promptData.description}
   - Contacto: ${promptData.contactName}
   - Teléfono: ${promptData.phone}
 
-El plan debe incluir las siguientes secciones, adaptadas al negocio:
-  1. Objetivos del plan
-  2. Público objetivo
-  3. Estrategias de marketing en Facebook
-  4. Calendario de contenidos (15 días) con ejemplos personalizados
-  5. Presupuesto y KPIs
-  6. Herramientas e integración
+El plan debe estar en formato de texto plano y debe incluir las siguientes secciones numeradas:
+1. Objetivos del plan.
+2. Público objetivo.
+3. Estrategias de marketing en Facebook.
+4. Calendario de contenidos (15 días) con ejemplos personalizados para cada día.
+5. Presupuesto y KPIs.
+6. Herramientas e integración.
 
-Genera el plan en formato de texto plano, con secciones claras y numeradas, sin formato JSON.`;
+Incluye en la sección 4 el calendario de 15 días con ejemplos detallados (por ejemplo, "Día 1 (Lunes): Publica una imagen ...", "Día 2 (Martes): Comparte un carrusel de imágenes ...", etc.).
+
+Genera el plan completo en texto, sin formato JSON.`;
 
   try {
     const response = await openai.createChatCompletion({

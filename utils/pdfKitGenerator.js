@@ -3,8 +3,8 @@ import fs from 'fs';
 import path from 'path';
 
 /**
- * Crea un PDF utilizando el texto plano generado por ChatGPT para el plan de ventas.
- * Se muestra un encabezado con la información del lead y luego el contenido completo del plan.
+ * Crea un PDF que muestra el plan de ventas generado en texto plano por ChatGPT.
+ * El PDF comienza con un encabezado con los datos del lead y luego imprime el contenido completo.
  *
  * @param {string} planText - El texto generado por ChatGPT.
  * @param {object} leadData - Datos del lead, por ejemplo:
@@ -25,14 +25,14 @@ export async function createPlanPDF(planText, leadData) {
     const stream = fs.createWriteStream(outputPath);
     doc.pipe(stream);
 
-    // Encabezado: Datos del negocio
+    // Encabezado con datos del negocio
     doc.fontSize(20)
-       .text(`Plan de Ventas para Facebook`, { align: "center", underline: true });
+       .text("Plan de Ventas para Facebook", { align: "center", underline: true });
     doc.moveDown();
     doc.fontSize(14)
        .text(`Negocio: ${leadData.negocio || "N/D"}`, { align: "center" });
     doc.fontSize(12)
-       .text(`Sector (Giro): ${leadData.giro || "N/D"}`, { align: "center" });
+       .text(`Giro: ${leadData.giro || "N/D"}`, { align: "center" });
     doc.fontSize(12)
        .text(`Descripción: ${leadData.descripcion || "N/D"}`, { align: "center" });
     doc.fontSize(12)
@@ -43,8 +43,9 @@ export async function createPlanPDF(planText, leadData) {
        .text(`Fecha: ${new Date().toLocaleDateString()}`, { align: "center" });
     doc.moveDown(2);
 
-    // Contenido: El plan generado por ChatGPT
-    doc.fontSize(12).text(planText, { align: "justify", lineGap: 4 });
+    // Contenido generado por ChatGPT (que incluye el calendario)
+    doc.fontSize(12)
+       .text(planText, { align: "justify", lineGap: 4 });
 
     doc.end();
     stream.on("finish", () => resolve(outputPath));
