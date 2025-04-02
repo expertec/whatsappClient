@@ -13,8 +13,8 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration);
 
 /**
- * Genera un plan de ventas para Facebook en formato JSON, adaptado al negocio.
- * Se personaliza la estrategia utilizando los campos "descripcion" y "giro".
+ * Genera un plan de ventas para Facebook en formato JSON, personalizado para cada negocio
+ * utilizando los campos "giro" y "descripcion" del lead.
  *
  * @param {object} lead - Objeto con datos del lead:
  *   {
@@ -37,122 +37,124 @@ export async function generarEstrategia(lead) {
     phone: lead.telefono || "Sin teléfono"
   };
 
-  // Instrucciones genéricas para personalizar la estrategia según la descripción y giro
-  const personalizedInstructions = `Personaliza las estrategias de acuerdo a la naturaleza del negocio y la siguiente descripción: "${promptData.description}". Considera el giro del negocio: "${promptData.businessType}".`;
+  // Instrucciones genéricas que incorporan "giro" y "descripcion"
+  const personalizedInstructions = `Personaliza las siguientes secciones del plan basándote en la naturaleza del negocio y su propuesta: 
+  - Giro: "${promptData.businessType}"
+  - Descripción: "${promptData.description}"`;
 
-  // Estructura JSON esperada para el plan de ventas en Facebook con 15 días de calendario
+  // Estructura JSON personalizada para el plan de ventas en Facebook
   const jsonStructure = {
-    titulo: `Plan de Ventas para Facebook: Estrategias y Calendario de Contenidos (15 Días) para ${promptData.businessName}`,
+    titulo: `Plan de Ventas para Facebook para ${promptData.businessName}`,
     objetivosPlan: {
-      incrementarVentas: "Aumentar los pedidos al por mayor mediante estrategias de conversión optimizadas.",
-      fortalecerMarca: `Posicionar la marca en Facebook como referente de calidad, innovación y servicio en el sector ${promptData.businessType}.`,
-      fidelizarClientes: "Crear una comunidad comprometida y generar confianza a largo plazo.",
-      generarLeads: "Obtener datos de potenciales clientes interesados en compras a gran escala y personalización."
+      incrementarVentas: `Incrementar las ventas de ${promptData.businessName} en el sector ${promptData.businessType}, aprovechando sus fortalezas: ${promptData.description}.`,
+      fortalecerMarca: `Fortalecer la marca de ${promptData.businessName} en Facebook, destacando su propuesta única en ${promptData.businessType} basada en ${promptData.description}.`,
+      fidelizarClientes: `Crear una comunidad comprometida para ${promptData.businessName} en el nicho de ${promptData.businessType}, aprovechando el enfoque: ${promptData.description}.`,
+      generarLeads: `Generar leads calificados interesados en las propuestas de ${promptData.businessName} en ${promptData.businessType} según su propuesta: ${promptData.description}.`
     },
     publicoObjetivo: [
-      "Segmento 1: Describe el perfil del cliente ideal.",
-      "Segmento 2: Describe otro perfil relevante.",
-      "Segmento 3: Describe un tercer perfil si aplica."
+      `Clientes que buscan productos/servicios de ${promptData.businessType} que valoren ${promptData.description}.`,
+      `Empresas y particulares interesados en la calidad y personalización en ${promptData.businessType}.`,
+      `Segmentos de mercado específicos relacionados con ${promptData.businessType} y la propuesta de ${promptData.description}.`
     ],
     estrategiasMarketing: {
-      contenidoOrganicoMultimedia: "Publicaciones visuales y videos cortos, historias y live streaming, contenido educativo y contenido generado por usuarios.",
-      publicidadPagadaSegmentacion: "Campañas de conversión y tráfico, segmentación inteligente, retargeting dinámico y anuncios interactivos.",
-      integracionHerramientasAutomatizacion: "Uso de chatbots, messenger marketing, análisis en tiempo real y colaboración con influencers.",
-      tendenciasClave: "Personalización, innovación, sostenibilidad y estrategias omnicanal."
+      contenidoOrganicoMultimedia: `Crear contenido visual y audiovisual que demuestre cómo ${promptData.businessName} ofrece ${promptData.description} en el sector ${promptData.businessType}.`,
+      publicidadPagadaSegmentacion: `Desarrollar campañas en Facebook dirigidas a audiencias interesadas en ${promptData.businessType} y que valoren ${promptData.description}.`,
+      integracionHerramientasAutomatizacion: `Implementar herramientas y automatización (chatbots, CRM) adaptadas a las necesidades de ${promptData.businessType} y la propuesta de ${promptData.description}.`,
+      tendenciasClave: `Adoptar tendencias e innovaciones que potencien el posicionamiento en ${promptData.businessType} basándose en ${promptData.description}.`
     },
     calendarioContenidos: [
       {
         dia: "Día 1 (Lunes)",
-        contenidoOrganico: "Publica una imagen inspiradora del producto o servicio con un mensaje motivador.",
-        anuncio: "Inicia una campaña de bienvenida con un cupón de descuento o promoción."
+        contenidoOrganico: `Publica una imagen inspiradora que refleje la esencia de ${promptData.businessName} y cómo se destaca en ${promptData.businessType}: ${promptData.description}.`,
+        anuncio: `Inicia una campaña de bienvenida resaltando las ventajas de ${promptData.businessName} en ${promptData.businessType}.`
       },
       {
         dia: "Día 2 (Martes)",
-        contenidoOrganico: "Comparte un carrusel de imágenes que muestren diferentes aspectos del producto o servicio.",
-        objetivo: "Genera interacción preguntando: '¿Cuál de estas opciones prefieres?'"
+        contenidoOrganico: `Comparte un carrusel de imágenes que muestren diferentes aspectos y aplicaciones de los productos/servicios de ${promptData.businessName}.`,
+        objetivo: `Generar interacción preguntando: "¿Cuál de estas opciones refleja mejor tu estilo?"`
       },
       {
         dia: "Día 3 (Miércoles)",
-        contenidoOrganico: "Publica un video corto mostrando el proceso detrás de la marca o producción.",
-        anuncio: "Lanza una campaña con un llamado a la acción para solicitar más información."
+        contenidoOrganico: `Publica un video corto mostrando el proceso detrás de ${promptData.businessName} y cómo se implementa ${promptData.description}.`,
+        anuncio: `Lanza una campaña para que los interesados soliciten más información sobre ${promptData.businessType}.`
       },
       {
         dia: "Día 4 (Jueves)",
-        contenidoOrganico: "Comparte un testimonio en formato carrusel de un cliente satisfecho.",
-        objetivo: "Reforzar la credibilidad y confianza en la marca."
+        contenidoOrganico: `Publica un testimonio en carrusel de un cliente satisfecho que resalte la calidad de ${promptData.businessName}.`,
+        objetivo: `Reforzar la confianza y credibilidad destacando los valores de ${promptData.description}.`
       },
       {
         dia: "Día 5 (Viernes)",
-        contenidoOrganico: "Comparte un reel dinámico mostrando aspectos destacados del producto o servicio.",
-        anuncio: "Anuncia una promoción especial con un CTA 'Cotizar Ahora'."
+        contenidoOrganico: `Comparte un reel dinámico que muestre el empaque, la personalización y el servicio de ${promptData.businessName}.`,
+        anuncio: `Anuncia una promoción especial con un CTA "Cotizar Ahora" para atraer nuevos clientes.`
       },
       {
         dia: "Día 6 (Sábado)",
-        contenidoOrganico: "Utiliza historias para realizar una encuesta interactiva sobre las preferencias de tu audiencia.",
-        objetivo: "Fomentar la participación y recoger feedback."
+        contenidoOrganico: `Utiliza historias para realizar una encuesta interactiva sobre preferencias relacionadas con ${promptData.businessType}.`,
+        objetivo: `Fomentar la participación y recopilar feedback sobre ${promptData.description}.`
       },
       {
         dia: "Día 7 (Domingo)",
-        contenidoOrganico: "Publica un resumen semanal en formato infografía, destacando logros y comentarios.",
-        anuncio: "Lanza un anuncio recordatorio con un CTA 'Solicitar Cotización Hoy'."
+        contenidoOrganico: `Publica un resumen semanal en infografía que muestre logros y comentarios destacados sobre ${promptData.businessName}.`,
+        anuncio: `Lanza un anuncio recordatorio con un CTA "Solicitar Cotización Hoy".`
       },
       {
         dia: "Día 8 (Lunes)",
-        contenidoOrganico: "Realiza un Facebook Live para presentar al equipo y el proceso detrás de la marca.",
-        objetivo: "Humaniza la marca y crea conexión directa."
+        contenidoOrganico: `Realiza un Facebook Live para presentar al equipo y mostrar el proceso de ${promptData.businessName} en acción.`,
+        objetivo: `Humanizar la marca y crear una conexión directa con la audiencia.`
       },
       {
         dia: "Día 9 (Martes)",
-        contenidoOrganico: "Publica una imagen creativa del producto en uso durante un evento.",
-        objetivo: "Inspira a visualizar el producto en situaciones reales."
+        contenidoOrganico: `Publica una imagen creativa que demuestre cómo los productos/servicios de ${promptData.businessName} se utilizan en situaciones reales.`,
+        objetivo: `Inspirar a los potenciales clientes a imaginar el producto en su entorno.`
       },
       {
         dia: "Día 10 (Miércoles)",
-        contenidoOrganico: "Comparte una infografía educativa sobre tendencias y datos relevantes del sector.",
-        anuncio: "Dirige una campaña de retargeting con un CTA 'Conocer Más'."
+        contenidoOrganico: `Comparte una infografía educativa sobre tendencias y datos relevantes del sector ${promptData.businessType}.`,
+        anuncio: `Dirige una campaña de retargeting con un CTA "Conocer Más".`
       },
       {
         dia: "Día 11 (Jueves)",
-        contenidoOrganico: "Publica un video testimonial de un cliente o usuario satisfecho.",
-        objetivo: "Validar socialmente a través de experiencias reales."
+        contenidoOrganico: `Publica un video testimonial de un cliente que resalte cómo ${promptData.businessName} ha marcado la diferencia en ${promptData.businessType}.`,
+        objetivo: `Validar socialmente mediante experiencias reales.`
       },
       {
         dia: "Día 12 (Viernes)",
-        contenidoOrganico: "Comparte un reel demostrativo que muestre cómo se personaliza o utiliza el producto/servicio.",
-        anuncio: "Lanza un anuncio promocional con un descuento especial y un CTA 'Aprovecha Ahora'."
+        contenidoOrganico: `Comparte un reel demostrativo que muestre cómo se personaliza o utiliza el producto/servicio de ${promptData.businessName}.`,
+        anuncio: `Lanza un anuncio promocional con un descuento especial y CTA "Aprovecha Ahora".`
       },
       {
         dia: "Día 13 (Sábado)",
-        contenidoOrganico: "Publica una imagen 'antes y después' mostrando la transformación o mejora gracias al producto/servicio.",
-        objetivo: "Demostrar el valor añadido de la personalización o innovación."
+        contenidoOrganico: `Publica una imagen "antes y después" que ilustre el impacto de la personalización o mejora en ${promptData.businessName}.`,
+        objetivo: `Demostrar el valor añadido basado en ${promptData.description}.`
       },
       {
         dia: "Día 14 (Domingo)",
-        contenidoOrganico: "Comparte una historia mostrando el día a día en la empresa (oficina, taller, etc.).",
-        anuncio: "Publica un anuncio recordatorio con un CTA 'Solicitar Cotización o Asesoría'."
+        contenidoOrganico: `Comparte una historia mostrando el día a día en la empresa, resaltando la filosofía de ${promptData.businessName}.`,
+        anuncio: `Publica un anuncio recordatorio con CTA "Solicitar Cotización o Asesoría".`
       },
       {
         dia: "Día 15 (Lunes)",
-        contenidoOrganico: "Publica un resumen quincenal en formato infografía o video, con datos de interacción y feedback de clientes.",
-        anuncio: "Anuncia un CTA final invitando a suscribirse al boletín para obtener beneficios exclusivos."
+        contenidoOrganico: `Publica un resumen quincenal en infografía o video con datos de interacción y feedback sobre ${promptData.businessName}.`,
+        anuncio: `Anuncia un CTA final invitando a suscribirse al boletín para obtener beneficios exclusivos.`
       }
     ],
     presupuestoKPIs: {
-      presupuestoPublicitario: "Inversión mensual distribuida: 30-40% para campañas de conversión y retargeting, 20-30% para anuncios de engagement y 30-40% para branding.",
+      presupuestoPublicitario: `Definir una inversión que refleje el potencial de crecimiento en el sector ${promptData.businessType} y la propuesta de ${promptData.businessName}: ${promptData.description}.`,
       KPIs: [
         "Alcance e impresiones",
         "Tasa de interacción (likes, comentarios, compartidos)",
         "CTR (Click Through Rate)",
         "Costo por Lead (CPL)",
         "Retorno de Inversión (ROI)",
-        "Métricas de conversión (solicitudes, cotizaciones, ventas)"
+        "Conversiones específicas del sector"
       ]
     },
     herramientasIntegracion: {
-      metaBusinessSuite: "Para gestionar y analizar campañas en tiempo real.",
-      crmAutomatizacion: "Uso de CRM para seguimiento de leads y personalización de mensajes.",
-      estrategiaOmnicanal: "Integración de Facebook, Instagram, WhatsApp y Messenger para una experiencia unificada.",
-      socialListening: "Uso de herramientas para monitorear feedback y ajustar la estrategia."
+      metaBusinessSuite: `Utilizar Meta Business Suite para analizar la audiencia interesada en ${promptData.businessType}.`,
+      crmAutomatizacion: `Emplear un CRM adaptado a las necesidades de empresas en ${promptData.businessType}, considerando la propuesta de ${promptData.description}.`,
+      estrategiaOmnicanal: `Integrar Facebook, Instagram, WhatsApp y Messenger para una experiencia coherente en el sector ${promptData.businessType}.`,
+      socialListening: `Monitorear el feedback y tendencias del mercado en ${promptData.businessType} para ajustar la estrategia basada en ${promptData.description}.`
     }
   };
 
@@ -167,7 +169,7 @@ Genera un plan de ventas para Facebook en formato JSON, siguiendo la estructura 
 
 ${JSON.stringify(jsonStructure, null, 2)}
 
-Asegúrate de adaptar la información según el giro ("${promptData.businessType}") y la descripción ("${promptData.description}") proporcionadas. El resultado debe ser un JSON válido.`;
+Asegúrate de adaptar cada sección según el giro ("${promptData.businessType}") y la descripción ("${promptData.description}") proporcionadas. El resultado debe ser un JSON válido.`;
 
   try {
     const response = await openai.createChatCompletion({

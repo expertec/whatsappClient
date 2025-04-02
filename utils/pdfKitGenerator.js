@@ -14,7 +14,7 @@ import path from 'path';
  * 6. Presupuesto y KPIs
  * 7. Herramientas e Integración
  *
- * @param {string|object} strategyText - El plan generado por ChatGPT (en formato JSON o texto estructurado).
+ * @param {string|object} strategyText - El plan generado por ChatGPT (JSON o texto estructurado).
  * @param {object} leadData - Datos del lead:
  *   {
  *     negocio: "SP Playeras",
