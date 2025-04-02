@@ -9,10 +9,10 @@ import path from 'path';
  * @param {string} planText - El plan generado por ChatGPT en formato de texto plano.
  * @param {object} leadData - Datos del lead, por ejemplo:
  *   {
- *     negocio: "SP Playeras",
- *     giro: "Venta de Ropa",
- *     descripcion: "Venta de ropa al mayoreo con énfasis en calidad y moda.",
- *     nombre: "Michel Perez",
+ *     negocio: "Refacciones Rafa",
+ *     giro: "Venta de refacciones para autos",
+ *     descripcion: "Vendemos refacciones para automóviles con garantía y asesoría personalizada.",
+ *     nombre: "Rafa Soto",
  *     telefono: "8311760335"
  *   }
  * @returns {Promise<string>} - Ruta local del PDF generado.
