@@ -27,7 +27,7 @@ const openai = new OpenAIApi(configuration);
  * @returns {Promise<string|null>} - El plan generado en texto plano o null en caso de error.
  */
 export async function generarEstrategia(lead) {
-  // Verifica y muestra el objeto lead en los logs para asegurarte que llegan los datos correctos
+  // Verificar y mostrar el objeto lead para depuración
   console.log("Datos del lead:", lead);
 
   const promptData = {
@@ -60,13 +60,19 @@ El plan debe estar en formato de texto plano y debe incluir las siguientes secci
 
 Genera el plan completo en texto plano, con secciones claras y numeradas, personalizando cada sección basándote en la información proporcionada.`;
 
+  // Imprime el prompt para verificar qué se envía a ChatGPT
+  console.log("Prompt enviado a ChatGPT:", prompt);
+
   try {
     const response = await openai.createChatCompletion({
       model: "gpt-4",
       messages: [{ role: "user", content: prompt }],
       temperature: 0.7,
     });
-    return response.data.choices[0].message.content;
+    const plan = response.data.choices[0].message.content;
+    // Imprime la respuesta recibida de ChatGPT para diagnosticar la personalización
+    console.log("Respuesta de ChatGPT:", plan);
+    return plan;
   } catch (error) {
     console.error("Error al llamar a ChatGPT:", error.response ? error.response.data : error);
     return null;
