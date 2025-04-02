@@ -13,8 +13,7 @@ const openai = new OpenAIApi(configuration);
 
 /**
  * Genera un plan de ventas para Facebook en formato de texto plano,
- * personalizado según los datos del lead ("giro" y "descripcion") y que
- * incluya un calendario de contenidos de 15 días con ejemplos.
+ * personalizado según los datos del lead y que incluya un calendario de contenidos de 15 días con ejemplos.
  *
  * @param {object} lead - Objeto con datos del lead, por ejemplo:
  *   {
@@ -27,6 +26,9 @@ const openai = new OpenAIApi(configuration);
  * @returns {Promise<string|null>} - El plan generado en texto plano o null en caso de error.
  */
 export async function generarEstrategia(lead) {
+  // Verifica y muestra en consola el objeto lead para depuración
+  console.log("Datos del lead:", lead);
+  
   const promptData = {
     businessName: lead.negocio || "Nombre no proporcionado",
     businessType: lead.giro || "General",
@@ -46,13 +48,17 @@ El plan debe estar en formato de texto plano y debe incluir las siguientes secci
 1. Objetivos del plan.
 2. Público objetivo.
 3. Estrategias de marketing en Facebook.
-4. Calendario de contenidos (15 días) con ejemplos personalizados para cada día.
+4. Calendario de contenidos (15 días) con ejemplos personalizados.
+   Para cada día, en la sección "Contenido Orgánico" describe:
+      - Si se utilizará una imagen o un video.
+      - El estilo de diseño o si el video debe ser reel.
+      - Un copy sugerido y estrategias tipo VSL.
+   En la sección "Anuncio", describe un ejemplo de campaña, por ejemplo:
+      - Dirige una campaña de retargeting a usuarios que hayan interactuado con publicaciones anteriores, utilizando un video corto y un CTA que invite a "Conocer Más".
 5. Presupuesto y KPIs.
 6. Herramientas e integración.
 
-Asegúrate de incluir el calendario de 15 días con ejemplos como:
-  - Día 1 (Lunes): Publica una imagen inspiradora... etc.
-Genera el plan completo en texto plano, sin formato JSON.`;
+Genera el plan completo en texto plano, con secciones claras y numeradas.`;
 
   try {
     const response = await openai.createChatCompletion({

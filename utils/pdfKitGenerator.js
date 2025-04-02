@@ -43,7 +43,7 @@ export async function createStrategyPDF(planText, leadData) {
        .text(`Fecha: ${new Date().toLocaleDateString()}`, { align: "center" });
     doc.moveDown(2);
 
-    // Contenido completo del plan (texto plano generado por ChatGPT)
+    // Contenido completo del plan generado por ChatGPT
     doc.fontSize(12)
        .text(planText, { align: "justify", lineGap: 4 });
 
