@@ -128,7 +128,8 @@ async function procesarMensajePDFChatGPT(lead) {
         console.error("El lead no contiene el campo 'giro'. Se asigna valor predeterminado 'general'.");
         lead.giro = "general";
       }
-      const strategyText = await generarEstrategia(lead.giro);
+      // CORRECCIÓN: Pasar el objeto completo lead en lugar de lead.giro
+      const strategyText = await generarEstrategia(lead);
       if (!strategyText) {
         console.error("No se pudo generar la estrategia.");
         return;
@@ -218,7 +219,6 @@ async function processSequences() {
   }
 }
 
-// Programa el scheduler para que se ejecute cada minuto
 cron.schedule('* * * * *', () => {
   processSequences();
 });
