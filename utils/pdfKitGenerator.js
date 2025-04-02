@@ -4,7 +4,7 @@ import path from 'path';
 
 /**
  * Crea un PDF para el plan de ventas en Facebook basado en el JSON generado por ChatGPT.
- * La plantilla se adapta a cada negocio e incluye las siguientes secciones:
+ * La plantilla se adapta a cada negocio e incluye:
  *
  * 1. Portada: Título y Datos del Negocio
  * 2. Objetivos del Plan
@@ -19,7 +19,7 @@ import path from 'path';
  *   {
  *     negocio: "SP Playeras",
  *     giro: "Venta de Ropa",
- *     descripcion: "Venta de ropa al mayoreo",
+ *     descripcion: "Venta de ropa al mayoreo con énfasis en calidad y moda.",
  *     nombre: "Michel Perez",
  *     telefono: "8311760335",
  *     ...

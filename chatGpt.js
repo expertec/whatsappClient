@@ -14,20 +14,13 @@ const openai = new OpenAIApi(configuration);
 
 /**
  * Genera un plan de ventas para Facebook en formato JSON, adaptado al negocio.
- * El plan incluye:
- *  - Título dinámico
- *  - Objetivos del Plan
- *  - Público Objetivo
- *  - Estrategias de Marketing (Contenido Orgánico, Publicidad, Integración y Tendencias)
- *  - Calendario de Contenidos (15 días) con ejemplos
- *  - Presupuesto y KPIs
- *  - Herramientas e Integración
+ * Se personaliza la estrategia utilizando los campos "descripcion" y "giro".
  *
  * @param {object} lead - Objeto con datos del lead:
  *   {
  *     negocio: "SP Playeras",
  *     giro: "Venta de Ropa",
- *     descripcion: "Venta de ropa al mayoreo",
+ *     descripcion: "Venta de ropa al mayoreo con énfasis en calidad y moda.",
  *     nombre: "Michel Perez",
  *     telefono: "8311760335",
  *     ...
@@ -44,7 +37,10 @@ export async function generarEstrategia(lead) {
     phone: lead.telefono || "Sin teléfono"
   };
 
-  // Definir la estructura JSON esperada para el plan de ventas en Facebook, incluyendo un calendario de 15 días
+  // Instrucciones genéricas para personalizar la estrategia según la descripción y giro
+  const personalizedInstructions = `Personaliza las estrategias de acuerdo a la naturaleza del negocio y la siguiente descripción: "${promptData.description}". Considera el giro del negocio: "${promptData.businessType}".`;
+
+  // Estructura JSON esperada para el plan de ventas en Facebook con 15 días de calendario
   const jsonStructure = {
     titulo: `Plan de Ventas para Facebook: Estrategias y Calendario de Contenidos (15 Días) para ${promptData.businessName}`,
     objetivosPlan: {
@@ -54,122 +50,124 @@ export async function generarEstrategia(lead) {
       generarLeads: "Obtener datos de potenciales clientes interesados en compras a gran escala y personalización."
     },
     publicoObjetivo: [
-      "Mayoristas y Distribuidores: Tiendas, boutiques y distribuidores.",
-      "Empresas y Organizaciones: Compañías que requieren productos para uniformes, eventos o promociones.",
-      "Organizadores de Eventos y Marcas Emergentes: Negocios que buscan soluciones integrales de personalización y merchandising."
+      "Segmento 1: Describe el perfil del cliente ideal.",
+      "Segmento 2: Describe otro perfil relevante.",
+      "Segmento 3: Describe un tercer perfil si aplica."
     ],
     estrategiasMarketing: {
-      contenidoOrganicoMultimedia: "Publicaciones visuales y videos cortos, historias y live streaming, contenido educativo y user-generated content.",
-      publicidadPagadaSegmentacion: "Campañas de conversión y tráfico, segmentación con IA, retargeting dinámico y anuncios interactivos.",
-      integracionHerramientasAutomatizacion: "Uso de chatbots y messenger marketing, análisis en tiempo real y colaboración con influencers.",
-      tendenciasClave: "Personalización y experiencias hiper-relevantes, sostenibilidad y responsabilidad social, interacción omnicanal."
+      contenidoOrganicoMultimedia: "Publicaciones visuales y videos cortos, historias y live streaming, contenido educativo y contenido generado por usuarios.",
+      publicidadPagadaSegmentacion: "Campañas de conversión y tráfico, segmentación inteligente, retargeting dinámico y anuncios interactivos.",
+      integracionHerramientasAutomatizacion: "Uso de chatbots, messenger marketing, análisis en tiempo real y colaboración con influencers.",
+      tendenciasClave: "Personalización, innovación, sostenibilidad y estrategias omnicanal."
     },
     calendarioContenidos: [
       {
         dia: "Día 1 (Lunes)",
-        contenidoOrganico: "Publica una imagen de un producto con fondo inspirador y el texto: '¡Nueva semana, nuevos estilos!'",
-        anuncio: "Inicia una campaña 'Oferta de Bienvenida' con un cupón de descuento del 10%."
+        contenidoOrganico: "Publica una imagen inspiradora del producto o servicio con un mensaje motivador.",
+        anuncio: "Inicia una campaña de bienvenida con un cupón de descuento o promoción."
       },
       {
         dia: "Día 2 (Martes)",
-        contenidoOrganico: "Comparte un carrusel de imágenes mostrando diferentes combinaciones del producto.",
-        objetivo: "Inspira a los clientes y genera interacción preguntando: '¿Cuál es tu combinación favorita?'"
+        contenidoOrganico: "Comparte un carrusel de imágenes que muestren diferentes aspectos del producto o servicio.",
+        objetivo: "Genera interacción preguntando: '¿Cuál de estas opciones prefieres?'"
       },
       {
         dia: "Día 3 (Miércoles)",
-        contenidoOrganico: "Publica un video corto 'detrás de cámaras' mostrando el proceso de producción.",
-        anuncio: "Lanza una campaña de catálogo digital con un botón 'Solicita tu Catálogo'."
+        contenidoOrganico: "Publica un video corto mostrando el proceso detrás de la marca o producción.",
+        anuncio: "Lanza una campaña con un llamado a la acción para solicitar más información."
       },
       {
         dia: "Día 4 (Jueves)",
-        contenidoOrganico: "Publica un testimonio en carrusel de un cliente satisfecho.",
-        objetivo: "Reforzar la confianza y credibilidad."
+        contenidoOrganico: "Comparte un testimonio en formato carrusel de un cliente satisfecho.",
+        objetivo: "Reforzar la credibilidad y confianza en la marca."
       },
       {
         dia: "Día 5 (Viernes)",
-        contenidoOrganico: "Comparte un reel dinámico mostrando el empaque y la personalización del producto.",
-        anuncio: "Anuncia una 'Promoción de Fin de Semana' con un CTA 'Cotizar Ahora'."
+        contenidoOrganico: "Comparte un reel dinámico mostrando aspectos destacados del producto o servicio.",
+        anuncio: "Anuncia una promoción especial con un CTA 'Cotizar Ahora'."
       },
       {
         dia: "Día 6 (Sábado)",
-        contenidoOrganico: "Utiliza historias de Facebook para realizar una encuesta interactiva sobre preferencias de producto.",
-        objetivo: "Fomentar la participación del público."
+        contenidoOrganico: "Utiliza historias para realizar una encuesta interactiva sobre las preferencias de tu audiencia.",
+        objetivo: "Fomentar la participación y recoger feedback."
       },
       {
         dia: "Día 7 (Domingo)",
-        contenidoOrganico: "Publica un resumen semanal en infografía con comentarios destacados.",
+        contenidoOrganico: "Publica un resumen semanal en formato infografía, destacando logros y comentarios.",
         anuncio: "Lanza un anuncio recordatorio con un CTA 'Solicitar Cotización Hoy'."
       },
       {
         dia: "Día 8 (Lunes)",
-        contenidoOrganico: "Realiza un Facebook Live titulado 'Tour por la Fábrica' para presentar al equipo.",
-        objetivo: "Humanizar la marca y generar conexión."
+        contenidoOrganico: "Realiza un Facebook Live para presentar al equipo y el proceso detrás de la marca.",
+        objetivo: "Humaniza la marca y crea conexión directa."
       },
       {
         dia: "Día 9 (Martes)",
-        contenidoOrganico: "Publica una imagen creativa de los productos en acción en un evento.",
-        objetivo: "Inspirar a visualizar el producto en situaciones reales."
+        contenidoOrganico: "Publica una imagen creativa del producto en uso durante un evento.",
+        objetivo: "Inspira a visualizar el producto en situaciones reales."
       },
       {
         dia: "Día 10 (Miércoles)",
-        contenidoOrganico: "Comparte una infografía educativa sobre tendencias en el sector.",
+        contenidoOrganico: "Comparte una infografía educativa sobre tendencias y datos relevantes del sector.",
         anuncio: "Dirige una campaña de retargeting con un CTA 'Conocer Más'."
       },
       {
         dia: "Día 11 (Jueves)",
-        contenidoOrganico: "Publica un video testimonial de un cliente mayorista.",
+        contenidoOrganico: "Publica un video testimonial de un cliente o usuario satisfecho.",
         objetivo: "Validar socialmente a través de experiencias reales."
       },
       {
         dia: "Día 12 (Viernes)",
-        contenidoOrganico: "Comparte un reel demostrativo sobre la personalización de los productos.",
-        anuncio: "Lanza un anuncio promocional con un descuento especial y CTA 'Aprovecha Ahora'."
+        contenidoOrganico: "Comparte un reel demostrativo que muestre cómo se personaliza o utiliza el producto/servicio.",
+        anuncio: "Lanza un anuncio promocional con un descuento especial y un CTA 'Aprovecha Ahora'."
       },
       {
         dia: "Día 13 (Sábado)",
-        contenidoOrganico: "Publica una imagen 'antes y después' de la personalización del producto.",
-        objetivo: "Demostrar el valor añadido de la personalización."
+        contenidoOrganico: "Publica una imagen 'antes y después' mostrando la transformación o mejora gracias al producto/servicio.",
+        objetivo: "Demostrar el valor añadido de la personalización o innovación."
       },
       {
         dia: "Día 14 (Domingo)",
-        contenidoOrganico: "Comparte una historia mostrando el día a día en el taller o la oficina.",
-        anuncio: "Publica un anuncio recordatorio con CTA 'Solicitar Cotización o Asesoría'."
+        contenidoOrganico: "Comparte una historia mostrando el día a día en la empresa (oficina, taller, etc.).",
+        anuncio: "Publica un anuncio recordatorio con un CTA 'Solicitar Cotización o Asesoría'."
       },
       {
         dia: "Día 15 (Lunes)",
-        contenidoOrganico: "Publica un resumen quincenal en formato infografía o video con datos de interacción y feedback de clientes.",
-        anuncio: "Anuncia un CTA final invitando a suscribirse al boletín informativo para beneficios exclusivos."
+        contenidoOrganico: "Publica un resumen quincenal en formato infografía o video, con datos de interacción y feedback de clientes.",
+        anuncio: "Anuncia un CTA final invitando a suscribirse al boletín para obtener beneficios exclusivos."
       }
     ],
     presupuestoKPIs: {
-      presupuestoPublicitario: "Inversión mensual distribuida: 30-40% para conversión y retargeting, 20-30% para anuncios de engagement y 30-40% para branding.",
+      presupuestoPublicitario: "Inversión mensual distribuida: 30-40% para campañas de conversión y retargeting, 20-30% para anuncios de engagement y 30-40% para branding.",
       KPIs: [
         "Alcance e impresiones",
         "Tasa de interacción (likes, comentarios, compartidos)",
         "CTR (Click Through Rate)",
         "Costo por Lead (CPL)",
         "Retorno de Inversión (ROI)",
-        "Métricas de conversión (solicitudes de catálogo, cotizaciones, ventas)"
+        "Métricas de conversión (solicitudes, cotizaciones, ventas)"
       ]
     },
     herramientasIntegracion: {
       metaBusinessSuite: "Para gestionar y analizar campañas en tiempo real.",
       crmAutomatizacion: "Uso de CRM para seguimiento de leads y personalización de mensajes.",
       estrategiaOmnicanal: "Integración de Facebook, Instagram, WhatsApp y Messenger para una experiencia unificada.",
-      socialListening: "Empleo de herramientas para monitorear feedback y ajustar la estrategia."
+      socialListening: "Uso de herramientas para monitorear feedback y ajustar la estrategia."
     }
   };
 
-  // Construir el prompt que se enviará a ChatGPT
+  // Construir el prompt completo a enviar a ChatGPT
   const prompt = `Utilizando la siguiente información del negocio en formato JSON:
 
 ${JSON.stringify(promptData, null, 2)}
+
+${personalizedInstructions}
 
 Genera un plan de ventas para Facebook en formato JSON, siguiendo la estructura a continuación:
 
 ${JSON.stringify(jsonStructure, null, 2)}
 
-Asegúrate de adaptar la información según el giro del negocio y la descripción proporcionada. El resultado debe ser un JSON válido.`;
+Asegúrate de adaptar la información según el giro ("${promptData.businessType}") y la descripción ("${promptData.description}") proporcionadas. El resultado debe ser un JSON válido.`;
 
   try {
     const response = await openai.createChatCompletion({
