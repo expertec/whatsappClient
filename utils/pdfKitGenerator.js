@@ -3,8 +3,9 @@ import fs from 'fs';
 import path from 'path';
 
 /**
- * Crea un PDF que muestra el plan de ventas generado en texto plano por ChatGPT.
- * El PDF comienza con un encabezado con los datos del lead y luego imprime el contenido completo.
+ * Crea un PDF utilizando el texto plano generado por ChatGPT para el plan de ventas.
+ * El PDF comienza con un encabezado que muestra los datos del lead y luego imprime
+ * el contenido completo (incluyendo el calendario de 15 días).
  *
  * @param {string} planText - El texto generado por ChatGPT.
  * @param {object} leadData - Datos del lead, por ejemplo:
@@ -17,7 +18,7 @@ import path from 'path';
  *   }
  * @returns {Promise<string>} - Ruta local del PDF generado.
  */
-export async function createPlanPDF(planText, leadData) {
+export async function createStrategyPDF(planText, leadData) {
   return new Promise((resolve, reject) => {
     const fileName = `plan-ventas-${leadData.id || Date.now()}.pdf`;
     const outputPath = path.join('/tmp', fileName);
@@ -43,7 +44,7 @@ export async function createPlanPDF(planText, leadData) {
        .text(`Fecha: ${new Date().toLocaleDateString()}`, { align: "center" });
     doc.moveDown(2);
 
-    // Contenido generado por ChatGPT (que incluye el calendario)
+    // Contenido generado por ChatGPT
     doc.fontSize(12)
        .text(planText, { align: "justify", lineGap: 4 });
 
