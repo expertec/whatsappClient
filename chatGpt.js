@@ -26,7 +26,7 @@ const openai = new OpenAIApi(configuration);
  *   }
  * @returns {Promise<string|null>} - El plan generado en texto plano o null en caso de error.
  */
-export async function generarPlanVentas(lead) {
+export async function generarEstrategia(lead) {
   const promptData = {
     businessName: lead.negocio || "Nombre no proporcionado",
     businessType: lead.giro || "General",
@@ -36,7 +36,7 @@ export async function generarPlanVentas(lead) {
   };
 
   const prompt = `Genera un plan de ventas para Facebook personalizado para el negocio "${promptData.businessName}".
-Usa la siguiente información:
+Utiliza la siguiente información:
   - Giro: ${promptData.businessType}
   - Descripción: ${promptData.description}
   - Contacto: ${promptData.contactName}
@@ -50,9 +50,9 @@ El plan debe estar en formato de texto plano y debe incluir las siguientes secci
 5. Presupuesto y KPIs.
 6. Herramientas e integración.
 
-Incluye en la sección 4 el calendario de 15 días con ejemplos detallados (por ejemplo, "Día 1 (Lunes): Publica una imagen ...", "Día 2 (Martes): Comparte un carrusel de imágenes ...", etc.).
-
-Genera el plan completo en texto, sin formato JSON.`;
+Asegúrate de incluir el calendario de 15 días con ejemplos como:
+  - Día 1 (Lunes): Publica una imagen inspiradora... etc.
+Genera el plan completo en texto plano, sin formato JSON.`;
 
   try {
     const response = await openai.createChatCompletion({

@@ -4,10 +4,9 @@ import path from 'path';
 
 /**
  * Crea un PDF utilizando el texto plano generado por ChatGPT para el plan de ventas.
- * El PDF comienza con un encabezado que muestra los datos del lead y luego imprime
- * el contenido completo (incluyendo el calendario de 15 días).
+ * El PDF incluye un encabezado con los datos del lead y luego imprime el contenido completo.
  *
- * @param {string} planText - El texto generado por ChatGPT.
+ * @param {string} planText - El plan generado por ChatGPT en formato de texto plano.
  * @param {object} leadData - Datos del lead, por ejemplo:
  *   {
  *     negocio: "SP Playeras",
@@ -44,7 +43,7 @@ export async function createStrategyPDF(planText, leadData) {
        .text(`Fecha: ${new Date().toLocaleDateString()}`, { align: "center" });
     doc.moveDown(2);
 
-    // Contenido generado por ChatGPT
+    // Contenido completo del plan (texto plano generado por ChatGPT)
     doc.fontSize(12)
        .text(planText, { align: "justify", lineGap: 4 });
 
