@@ -1,4 +1,33 @@
+import dotenv from 'dotenv';
+dotenv.config();
+import { Configuration, OpenAIApi } from 'openai';
+
+if (!process.env.OPENAI_API_KEY) {
+  throw new Error("Falta la variable de entorno OPENAI_API_KEY");
+}
+
+const configuration = new Configuration({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+const openai = new OpenAIApi(configuration);
+
+/**
+ * Genera un plan de ventas para Facebook en formato de texto plano,
+ * personalizado según los datos del lead ("giro" y "descripcion") y que
+ * incluya un calendario de contenidos de 15 días con ejemplos específicos.
+ *
+ * @param {object} lead - Objeto con datos del lead, por ejemplo:
+ *   {
+ *     negocio: "Refacciones Rafa",
+ *     giro: "Venta de refacciones para autos",
+ *     descripcion: "Vendemos refacciones para automóviles con garantía y asesoría personalizada.",
+ *     nombre: "Rafa Soto",
+ *     telefono: "8311760335"
+ *   }
+ * @returns {Promise<string|null>} - El plan generado en texto plano o null en caso de error.
+ */
 export async function generarEstrategia(lead) {
+  // Verificar y mostrar el objeto lead
   console.log("Datos del lead:", lead);
 
   const promptData = {
@@ -9,27 +38,28 @@ export async function generarEstrategia(lead) {
     phone: lead.telefono || "Sin teléfono"
   };
 
-  // Prompt modificado para forzar una personalización completa
-  const prompt = `Genera un plan de ventas para Facebook que esté completamente adaptado al negocio "${promptData.businessName}".
-Información del negocio:
+  // Prompt que exige personalización concreta en cada sección
+  const prompt = `Genera un plan de ventas para Facebook personalizado para el negocio "${promptData.businessName}".
+Utiliza la siguiente información:
   - Giro: ${promptData.businessType}
   - Descripción: ${promptData.description}
   - Contacto: ${promptData.contactName}
   - Teléfono: ${promptData.phone}
 
-El plan debe estar desarrollado específicamente para un negocio con estas características. Es decir, cada sección debe usar la información de "giro" y "descripcion" de forma concreta. El plan debe incluir las siguientes secciones numeradas:
+El plan debe estar en formato de texto plano y debe incluir las siguientes secciones numeradas:
 
 1. Objetivos del plan: Define objetivos específicos adaptados a un negocio de "${promptData.businessType}" basado en "${promptData.description}".
-2. Público objetivo: Describe de manera segmentada el público ideal para un negocio de "${promptData.businessType}".
-3. Estrategias de marketing en Facebook: Desarrolla estrategias específicas, mencionando tácticas concretas que se ajusten a la naturaleza de "${promptData.businessType}" y a la propuesta de valor "${promptData.description}".
-4. Calendario de contenidos (15 días): Para cada día, en la sección "Contenido Orgánico" describe:
-    - Si se usará una imagen o un video (y si el video debe ser tipo reel).
-    - El estilo de diseño y un copy sugerido, utilizando estrategias VSL que reflejen las necesidades de un negocio de "${promptData.businessType}".
-   En la sección "Anuncio", incluye un ejemplo de campaña, como: "Dirige una campaña de retargeting a usuarios que hayan interactuado con publicaciones anteriores, utilizando un video corto y un CTA 'Conocer Más', adaptado a este negocio."
-5. Presupuesto y KPIs: Define un presupuesto y los KPIs relevantes para un negocio de "${promptData.businessType}".
-6. Herramientas e integración: Menciona herramientas específicas que se puedan usar para optimizar la estrategia en el sector de "${promptData.businessType}".
+2. Público objetivo: Describe de forma segmentada el público ideal para un negocio de "${promptData.businessType}".
+3. Estrategias de marketing en Facebook: Desarrolla estrategias concretas que se ajusten a un negocio de "${promptData.businessType}" y basadas en "${promptData.description}".
+4. Calendario de contenidos (15 días): Para cada día, en la sección "Contenido Orgánico" especifica:
+     - Si se utilizará una imagen o un video (y si el video debe ser tipo reel).
+     - El estilo de diseño y un copy sugerido con estrategias VSL adaptadas a "${promptData.businessType}" y "${promptData.description}".
+   En la sección "Anuncio", describe un ejemplo de campaña, por ejemplo:
+     "Dirige una campaña de retargeting a usuarios que hayan interactuado con publicaciones anteriores, utilizando un video corto y un CTA 'Conocer Más', adaptado a este negocio."
+5. Presupuesto y KPIs: Define un presupuesto y KPIs relevantes para un negocio de "${promptData.businessType}".
+6. Herramientas e integración: Menciona herramientas específicas para optimizar la estrategia en el sector de "${promptData.businessType}".
 
-Genera el plan completo en texto plano, con secciones claras y numeradas, y que cada sección esté personalizada basándose en los datos proporcionados.`;
+Genera el plan completo en texto plano, con secciones claras y numeradas, personalizando cada sección basándote en la información proporcionada.`;
 
   try {
     const response = await openai.createChatCompletion({
