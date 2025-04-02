@@ -13,7 +13,8 @@ const openai = new OpenAIApi(configuration);
 
 /**
  * Genera un plan de ventas para Facebook en formato de texto plano,
- * personalizado según los datos del lead y que incluya un calendario de contenidos de 15 días con ejemplos.
+ * personalizado según los datos del lead ("giro" y "descripcion") y que
+ * incluya un calendario de contenidos de 15 días con ejemplos específicos.
  *
  * @param {object} lead - Objeto con datos del lead, por ejemplo:
  *   {
@@ -26,9 +27,10 @@ const openai = new OpenAIApi(configuration);
  * @returns {Promise<string|null>} - El plan generado en texto plano o null en caso de error.
  */
 export async function generarEstrategia(lead) {
-  // Verifica y muestra en consola el objeto lead para depuración
+  // Mostrar el objeto lead para verificar que tenga los datos correctos
   console.log("Datos del lead:", lead);
-  
+
+  // Asegurarse de que se tengan los campos necesarios
   const promptData = {
     businessName: lead.negocio || "Nombre no proporcionado",
     businessType: lead.giro || "General",
@@ -37,28 +39,28 @@ export async function generarEstrategia(lead) {
     phone: lead.telefono || "Sin teléfono"
   };
 
+  // Prompt actualizado para que ChatGPT incluya personalización en cada sección, especialmente en el calendario
   const prompt = `Genera un plan de ventas para Facebook personalizado para el negocio "${promptData.businessName}".
-Utiliza la siguiente información:
+Utiliza la siguiente información del negocio:
   - Giro: ${promptData.businessType}
   - Descripción: ${promptData.description}
   - Contacto: ${promptData.contactName}
   - Teléfono: ${promptData.phone}
 
 El plan debe estar en formato de texto plano y debe incluir las siguientes secciones numeradas:
+
 1. Objetivos del plan.
 2. Público objetivo.
 3. Estrategias de marketing en Facebook.
-4. Calendario de contenidos (15 días) con ejemplos personalizados.
-   Para cada día, en la sección "Contenido Orgánico" describe:
-      - Si se utilizará una imagen o un video.
-      - El estilo de diseño o si el video debe ser reel.
-      - Un copy sugerido y estrategias tipo VSL.
-   En la sección "Anuncio", describe un ejemplo de campaña, por ejemplo:
-      - Dirige una campaña de retargeting a usuarios que hayan interactuado con publicaciones anteriores, utilizando un video corto y un CTA que invite a "Conocer Más".
+4. Calendario de contenidos (15 días) con ejemplos personalizados. En cada día, en la sección "Contenido Orgánico", especifica:
+     - Si se usará una imagen o un video.
+     - El estilo de diseño o si el video debe ser tipo reel.
+     - Un copy sugerido y estrategias de VSL, personalizando el mensaje según el giro ("${promptData.businessType}") y la descripción ("${promptData.description}") del negocio.
+   En la sección "Anuncio", describe un ejemplo de campaña, por ejemplo: "Dirige una campaña de retargeting a usuarios que hayan interactuado con publicaciones anteriores, utilizando un video corto y un CTA que invite a 'Conocer Más', adaptado al giro y la propuesta del negocio."
 5. Presupuesto y KPIs.
 6. Herramientas e integración.
 
-Genera el plan completo en texto plano, con secciones claras y numeradas.`;
+Asegúrate de que cada sección esté personalizada de acuerdo a la información anterior. Genera el plan completo en texto plano, con secciones claras y numeradas.`;
 
   try {
     const response = await openai.createChatCompletion({
