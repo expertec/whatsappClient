@@ -27,7 +27,7 @@ const openai = new OpenAIApi(configuration);
  * @returns {Promise<string|null>} - El plan generado en texto plano o null en caso de error.
  */
 export async function generarEstrategia(lead) {
-  // Verificar y mostrar el objeto lead
+  // Verifica y muestra el objeto lead en los logs para asegurarte que llegan los datos correctos
   console.log("Datos del lead:", lead);
 
   const promptData = {
@@ -38,7 +38,6 @@ export async function generarEstrategia(lead) {
     phone: lead.telefono || "Sin teléfono"
   };
 
-  // Prompt que exige personalización concreta en cada sección
   const prompt = `Genera un plan de ventas para Facebook personalizado para el negocio "${promptData.businessName}".
 Utiliza la siguiente información:
   - Giro: ${promptData.businessType}
