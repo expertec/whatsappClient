@@ -1,9 +1,9 @@
-const puppeteer = require('puppeteer');
-const fs = require('fs');
-const path = require('path');
+import puppeteer from 'puppeteer';
+import fs from 'fs';
+import path from 'path';
 
-async function generatePDF(leadData, planText) {
-  // Aquí puedes construir la plantilla HTML dinámicamente
+export async function generatePDF(leadData, planText) {
+  // Construir la plantilla HTML dinámica usando los datos del lead y el plan generado
   const htmlContent = `
   <!DOCTYPE html>
   <html>
@@ -98,11 +98,11 @@ async function generatePDF(leadData, planText) {
   </html>
   `;
 
+  // Inicia Puppeteer y genera el PDF
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
   await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
   
-  // Genera el PDF con impresión de fondos y márgenes definidos
   const pdfBuffer = await page.pdf({
     format: 'A4',
     printBackground: true,
@@ -110,12 +110,10 @@ async function generatePDF(leadData, planText) {
   });
   
   await browser.close();
-  
+
   const fileName = `plan-ventas-${leadData.id || Date.now()}.pdf`;
   const outputPath = path.join('/tmp', fileName);
   fs.writeFileSync(outputPath, pdfBuffer);
   console.log("PDF generado en:", outputPath);
   return outputPath;
 }
-
-module.exports = { generatePDF };
