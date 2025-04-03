@@ -4,17 +4,17 @@ import path from 'path';
 import axios from 'axios';
 
 /**
- * Crea un PDF utilizando el texto plano generado por ChatGPT para el plan de ventas.
- * Se añade un fondo membretado (solo en la parte superior) usando la imagen proporcionada.
- * El PDF incluye un encabezado con los datos del lead y luego el contenido completo estilizado.
+ * Crea un PDF con un diseño adaptado al ejemplo proporcionado (pdfPlantilla.pdf).
+ * Se incluye un encabezado con un tagline, un título, un bloque de información del negocio
+ * y el contenido del plan (generado por ChatGPT).
  *
- * @param {string} planText - El plan generado por ChatGPT en formato de texto plano.
+ * @param {string} planText - El plan generado por ChatGPT en texto plano.
  * @param {object} leadData - Datos del lead, por ejemplo:
  *   {
- *     negocio: "Refacciones Rafa",
- *     giro: "Venta de refacciones para autos",
- *     descripcion: "Vendemos refacciones para automóviles con garantía y asesoría personalizada.",
- *     nombre: "Rafa Soto",
+ *     negocio: "Plomeria Profesional",
+ *     giro: "Servicios de Plomeria",
+ *     descripcion: "Brindamos servicio de plomeria",
+ *     nombre: "Adam Smith",
  *     telefono: "8311760335"
  *   }
  * @returns {Promise<string>} - Ruta local del PDF generado.
@@ -28,59 +28,46 @@ export async function createStrategyPDF(planText, leadData) {
       const stream = fs.createWriteStream(outputPath);
       doc.pipe(stream);
 
-      // Registrar la fuente "Helvetica" (default en PDFKit, moderna y sans serif)
+      // Usar la fuente Helvetica (moderna y sans serif)
       doc.font('Helvetica');
 
-      // Descargar y dibujar la imagen de fondo en el encabezado (membrete)
-      try {
-        const response = await axios.get('https://i.imgur.com/37p6fcV.jpeg', { responseType: 'arraybuffer' });
-        const bgBuffer = Buffer.from(response.data, 'binary');
-        // Dibujar la imagen en la parte superior (por ejemplo, ocupar 150 puntos de altura)
-        doc.image(bgBuffer, 0, 0, { width: doc.page.width, height: 150 });
-      } catch (bgError) {
-        console.error('Error al cargar la imagen de fondo:', bgError);
-      }
-
-      // Dejar un espacio para que se vea el membrete de fondo
-      // Establecer la posición de inicio del contenido debajo del header
-      doc.moveDown(7); // Aproximadamente 7 líneas (ajusta según tu preferencia)
-
-      // Dibujar una línea divisoria después del encabezado
-      doc.lineWidth(1)
-         .moveTo(50, doc.y)
-         .lineTo(doc.page.width - 50, doc.y)
-         .stroke();
-      doc.moveDown();
-
-      // Encabezado de datos del negocio (se sobrepone al fondo, pero está justo debajo del membrete)
-      doc.fontSize(16)
-         .fillColor('black')
-         .text("Plan de Ventas para Facebook", { align: "center", underline: true });
+      // 1. Tagline y subtítulo (parte superior)
+      doc.fontSize(18).fillColor('#333')
+         .text("Conecta, automatiza, vende.", { align: 'center' });
       doc.moveDown(0.5);
-      doc.fontSize(14)
-         .text(`Negocio: ${leadData.negocio || "N/D"}`, { align: "center" });
-      doc.fontSize(12)
-         .text(`Giro: ${leadData.giro || "N/D"}`, { align: "center" });
-      doc.fontSize(12)
-         .text(`Descripción: ${leadData.descripcion || "N/D"}`, { align: "center" });
-      doc.fontSize(12)
-         .text(`Contacto: ${leadData.nombre || "N/D"}`, { align: "center" });
-      doc.fontSize(12)
-         .text(`Teléfono: ${leadData.telefono || "N/D"}`, { align: "center" });
-      doc.fontSize(12)
-         .text(`Fecha: ${new Date().toLocaleDateString()}`, { align: "center" });
-      doc.moveDown(2);
+      doc.fontSize(14).fillColor('#555')
+         .text("Marketing digital impulsado por software para vender más.", { align: 'center' });
+      doc.moveDown(1);
 
-      // Dibujar otra línea divisoria antes del contenido principal
-      doc.lineWidth(1)
-         .moveTo(50, doc.y)
-         .lineTo(doc.page.width - 50, doc.y)
-         .stroke();
+      // 2. Título del plan
+      doc.fontSize(20).fillColor('black')
+         .text("Plan de Ventas para Facebook", { align: 'center', underline: true });
+      doc.moveDown(1);
+
+      // 3. Bloque de información del negocio
+      // Opcional: dibujar un fondo ligero para resaltar este bloque
+      const infoY = doc.y;
+      doc.rect(50, infoY, doc.page.width - 100, 70)
+         .fillOpacity(0.1)
+         .fill("#f0f0f0")
+         .fillOpacity(1);
+      doc.y = infoY + 10;
+      doc.fontSize(12).fillColor('black');
+      doc.text(`Negocio: ${leadData.negocio || "N/D"}`, { align: 'left' });
+      doc.text(`Giro: ${leadData.giro || "N/D"}`, { align: 'left' });
+      doc.text(`Descripción: ${leadData.descripcion || "N/D"}`, { align: 'left' });
+      doc.text(`Contacto: ${leadData.nombre || "N/D"}    Teléfono: ${leadData.telefono || "N/D"}`, { align: 'left' });
+      doc.text(`Fecha: ${new Date().toLocaleDateString()}`, { align: 'left' });
+      doc.moveDown(1);
+
+      // 4. Línea divisoria
+      doc.moveTo(50, doc.y).lineTo(doc.page.width - 50, doc.y).stroke();
       doc.moveDown();
 
-      // Contenido del plan (generado por ChatGPT) con estilo y espaciado
-      doc.fontSize(12)
-         .text(planText, { align: "justify", lineGap: 4 });
+      // 5. Contenido del plan
+      doc.fontSize(11)
+         .fillColor('black')
+         .text(planText, { align: 'justify', lineGap: 4 });
 
       doc.end();
       stream.on("finish", () => resolve(outputPath));
