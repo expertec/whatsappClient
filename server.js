@@ -16,7 +16,9 @@ import { db } from './firebaseAdmin.js';
 // Importar integración con WhatsApp y funciones para PDF y estrategia
 import { connectToWhatsApp, getLatestQR, getConnectionStatus, getWhatsAppSock } from './whatsappService.js';
 import { generarEstrategia } from './chatGpt.js';
-import { createStrategyPDF } from './utils/pdfKitGenerator.js'; 
+
+import { generatePDF } from './utils/generatePDF.js';
+
 // O, si prefieres usar el otro método:
 // import { generateStrategyPDF } from './utils/generateStrategyPDF.js';
 
@@ -128,17 +130,19 @@ async function procesarMensajePDFChatGPT(lead) {
         console.error("El lead no contiene el campo 'giro'. Se asigna valor predeterminado 'general'.");
         lead.giro = "general";
       }
-      // CORRECCIÓN: Pasar el objeto completo lead en lugar de lead.giro
+      // Pasar el objeto completo lead a generarEstrategia
       const strategyText = await generarEstrategia(lead);
       if (!strategyText) {
         console.error("No se pudo generar la estrategia.");
         return;
       }
-      const pdfFilePath = await createStrategyPDF(strategyText, lead);
+      // Genera el PDF usando el nuevo módulo generatePDF
+      const pdfFilePath = await generatePDF(lead, strategyText);
       if (!pdfFilePath) {
         console.error("No se generó el PDF, pdfFilePath es nulo.");
         return;
       }
+      console.log("PDF generado en:", pdfFilePath);
       // Actualizar el lead con la ruta del PDF
       await db.collection('leads').doc(lead.id).update({ pdfEstrategia: pdfFilePath });
       lead.pdfEstrategia = pdfFilePath;
@@ -169,6 +173,7 @@ async function procesarMensajePDFChatGPT(lead) {
     console.error("Error procesando mensaje pdfChatGPT:", err);
   }
 }
+
 
 /**
  * Función que procesa las secuencias activas para cada lead.

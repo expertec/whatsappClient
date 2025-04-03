@@ -6,7 +6,7 @@ import { getWhatsAppSock } from './whatsappService.js';
 import fs from 'fs';
 import path from 'path';
 import { generarEstrategia } from './chatGpt.js';
-// Se elimina la importación de createStrategyPDF o generateStrategyPDF ya que ahora se usa generatePDF
+// Importamos el nuevo módulo generatePDF (basado en Puppeteer)
 import { generatePDF } from './utils/generatePDF.js';
 // IMPORTA o crea la función uploadPDFToStorage para subir el PDF a Storage
 import { uploadPDFToStorage } from './utils/uploadPDF.js'; 
@@ -83,13 +83,13 @@ async function enviarPDFPlan(lead) {
         console.error("El lead no tiene campo 'giro', se asigna 'general'");
         lead.giro = "general";
       }
-      // Pasar el objeto completo "lead" a generarEstrategia
+      // PASAR EL OBJETO COMPLETO lead a generarEstrategia para que el prompt se personalice correctamente
       const strategyText = await generarEstrategia(lead);
       if (!strategyText) {
         console.error("No se pudo generar la estrategia.");
         return;
       }
-      // Genera el PDF usando el nuevo módulo generatePDF
+      // Genera el PDF usando el nuevo módulo generatePDF (basado en Puppeteer)
       const pdfFilePath = await generatePDF(lead, strategyText);
       if (!pdfFilePath) {
         console.error("No se generó el PDF, pdfFilePath es nulo.");
