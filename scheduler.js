@@ -6,8 +6,8 @@ import { getWhatsAppSock } from './whatsappService.js';
 import fs from 'fs';
 import path from 'path';
 import { generarEstrategia } from './chatGpt.js';
-import { createStrategyPDF } from './utils/pdfKitGenerator.js';
-import { generateStrategyPDF } from './utils/generateStrategyPDF.js';
+// Se elimina la importación de createStrategyPDF o generateStrategyPDF ya que ahora se usa generatePDF
+import { generatePDF } from './utils/generatePDF.js';
 // IMPORTA o crea la función uploadPDFToStorage para subir el PDF a Storage
 import { uploadPDFToStorage } from './utils/uploadPDF.js'; 
 
@@ -60,7 +60,6 @@ async function enviarMensaje(lead, mensaje) {
     } else if (mensaje.type === "imagen") {
       await sock.sendMessage(jid, { image: { url: contenidoFinal } });
     } else if (mensaje.type === "pdfChatGPT") {
-      // Enviar el PDF previamente generado
       await enviarPDFPlan(lead);
     }
     console.log(`Mensaje de tipo "${mensaje.type}" enviado a ${lead.telefono}`);
@@ -71,26 +70,27 @@ async function enviarMensaje(lead, mensaje) {
 
 /**
  * Función que se encarga de enviar el PDF de la estrategia.
- * Si el lead ya tiene el campo pdfEstrategia, lo usa; de lo contrario, lo genera, lo sube y lo guarda.
- * Luego, envía el PDF y actualiza la etiqueta a "planEnviado".
+ * - Genera la estrategia y el PDF si aún no existe en el lead.
+ * - Envía el PDF por WhatsApp.
+ * - Actualiza el lead con el campo 'pdfEstrategia' y cambia la etiqueta a "planEnviado".
  */
 async function enviarPDFPlan(lead) {
   try {
     console.log(`Procesando PDF para el lead ${lead.id}`);
     let pdfUrl = lead.pdfEstrategia;
     if (!pdfUrl) {
-      // Generar estrategia (si no existe el campo "giro", usar "general")
       if (!lead.giro) {
         console.error("El lead no tiene campo 'giro', se asigna 'general'");
         lead.giro = "general";
       }
-      const strategyText = await generarEstrategia(lead.giro);
+      // Pasar el objeto completo "lead" a generarEstrategia
+      const strategyText = await generarEstrategia(lead);
       if (!strategyText) {
         console.error("No se pudo generar la estrategia.");
         return;
       }
-      // Genera el PDF usando generateStrategyPDF (o createStrategyPDF)
-      const pdfFilePath = await generateStrategyPDF(strategyText, lead);
+      // Genera el PDF usando el nuevo módulo generatePDF
+      const pdfFilePath = await generatePDF(lead, strategyText);
       if (!pdfFilePath) {
         console.error("No se generó el PDF, pdfFilePath es nulo.");
         return;
@@ -104,6 +104,7 @@ async function enviarPDFPlan(lead) {
       }
       // Actualiza el lead con la URL del PDF
       await db.collection('leads').doc(lead.id).update({ pdfEstrategia: pdfUrl });
+      lead.pdfEstrategia = pdfUrl;
     }
     // Envía el PDF vía WhatsApp
     const sock = getWhatsAppSock();
@@ -116,7 +117,6 @@ async function enviarPDFPlan(lead) {
       phone = `521${phone}`;
     }
     const jid = `${phone}@s.whatsapp.net`;
-    // Descarga el PDF a buffer para enviarlo (opcional: si ya tienes la URL, podrías usar una URL remota si la API lo permite)
     const pdfBuffer = fs.readFileSync(pdfUrl);
     await sock.sendMessage(jid, {
       document: pdfBuffer,
@@ -124,8 +124,7 @@ async function enviarPDFPlan(lead) {
       mimetype: "application/pdf"
     });
     console.log(`PDF de estrategia enviado a ${lead.telefono}`);
-    // Actualiza la etiqueta del lead: agrega "planEnviado" (o actualiza un campo específico)
-    // Aquí asumo que existe un campo "etiquetas" que es un arreglo
+    // Actualiza la etiqueta del lead a "planEnviado"
     const currentData = (await db.collection('leads').doc(lead.id).get()).data();
     const etiquetas = currentData.etiquetas || [];
     if (!etiquetas.includes("planEnviado")) {
@@ -151,7 +150,8 @@ async function processSequences() {
       for (let i = 0; i < lead.secuenciasActivas.length; i++) {
         const seqActiva = lead.secuenciasActivas[i];
         const secSnapshot = await db.collection('secuencias')
-          .where('trigger', '==', seqActiva.trigger).get();
+          .where('trigger', '==', seqActiva.trigger)
+          .get();
         if (secSnapshot.empty) continue;
         const secuencia = secSnapshot.docs[0].data();
         const mensajes = secuencia.messages;
@@ -183,4 +183,10 @@ async function processSequences() {
 
 cron.schedule('* * * * *', () => {
   processSequences();
+});
+
+app.listen(port, () => {
+  console.log(`Servidor corriendo en el puerto ${port}`);
+  // Conectar a WhatsApp al iniciar el servidor
+  connectToWhatsApp().catch(err => console.error("Error al conectar WhatsApp en startup:", err));
 });
